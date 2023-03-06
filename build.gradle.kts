@@ -202,6 +202,7 @@ publishing {
                     system.set("GitHub")
                     url.set("https://github.com/YDWK/YDE/issues")
                 }
+                url.set("https://www.ydwk.org")
                 licenses {
                     license {
                         name.set(extra["gpl_name"] as String)
