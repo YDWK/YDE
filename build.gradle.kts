@@ -9,7 +9,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 buildscript {
     repositories { mavenCentral() }
 
-    dependencies { classpath("org.jetbrains.dokka:dokka-base:1.7.20") }
+    dependencies {
+        classpath("org.jetbrains.dokka:dokka-base:1.7.20")
+        classpath("io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0")
+    }
 }
 
 plugins {
@@ -23,6 +26,8 @@ plugins {
     signing
     jacoco // code coverage reports
 }
+
+apply(plugin = "io.codearte.nexus-staging")
 
 extra.apply {
     set("name", "YDE")
@@ -61,6 +66,8 @@ dependencies {
 
     testImplementation(kotlin("test"))
 }
+
+apply(from = "gradle/tasks/Nexus.gradle")
 
 tasks.test {
     useJUnitPlatform()
