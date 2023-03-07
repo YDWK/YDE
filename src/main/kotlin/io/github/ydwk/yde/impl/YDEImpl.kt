@@ -54,7 +54,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-class YDEImpl(
+open class YDEImpl(
     private var token: String? = null,
     var applicationId: String? = null,
     private val client: OkHttpClient,
