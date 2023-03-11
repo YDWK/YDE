@@ -55,12 +55,12 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 open class YDEImpl(
-    protected var token: String? = null,
-    var applicationId: String? = null,
-    protected val client: OkHttpClient,
-    protected var guildIdList: MutableList<String> = mutableListOf(),
-    override val githubRepositoryUrl: String,
-    override val wrapperVersion: String,
+    protected open var token: String? = null,
+    open var applicationId: String? = null,
+    protected open val client: OkHttpClient,
+    protected open var guildIdList: MutableList<String> = mutableListOf(),
+    open override val githubRepositoryUrl: String,
+    open override val wrapperVersion: String,
 ) : YDE {
     val logger: Logger = LoggerFactory.getLogger(YDEImpl::class.java)
 
