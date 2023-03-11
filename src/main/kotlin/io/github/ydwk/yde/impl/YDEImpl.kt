@@ -55,16 +55,16 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 open class YDEImpl(
-    private var token: String? = null,
+    protected var token: String? = null,
     var applicationId: String? = null,
-    private val client: OkHttpClient,
-    private var guildIdList: MutableList<String> = mutableListOf(),
+    protected val client: OkHttpClient,
+    protected var guildIdList: MutableList<String> = mutableListOf(),
     override val githubRepositoryUrl: String,
     override val wrapperVersion: String,
 ) : YDE {
     val logger: Logger = LoggerFactory.getLogger(YDEImpl::class.java)
 
-    private val allowedCache: MutableSet<CacheIds> = mutableSetOf()
+    protected val allowedCache: MutableSet<CacheIds> = mutableSetOf()
     val cache: Cache = PerpetualCache(allowedCache)
     val memberCache: MemberCache = MemberCacheImpl(allowedCache)
 
