@@ -35,6 +35,7 @@ import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.channel.GuildChannel
 import io.github.ydwk.yde.entities.channel.enums.ChannelType
 import io.github.ydwk.yde.entities.guild.Member
+import io.github.ydwk.yde.entities.message.embed.builder.EmbedBuilder
 import io.github.ydwk.yde.exceptions.ApplicationIdNotSetException
 import io.github.ydwk.yde.impl.builders.message.IMessageCommandBuilderImpl
 import io.github.ydwk.yde.impl.builders.slash.SlashBuilderImpl
@@ -44,6 +45,7 @@ import io.github.ydwk.yde.impl.entities.UserImpl
 import io.github.ydwk.yde.impl.entities.builder.EntityBuilderImpl
 import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
 import io.github.ydwk.yde.impl.entities.channel.guild.GuildChannelImpl
+import io.github.ydwk.yde.impl.entities.message.embed.builder.EmbedBuilderImpl
 import io.github.ydwk.yde.impl.rest.RestApiManagerImpl
 import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.rest.RestApiManager
@@ -209,6 +211,9 @@ open class YDEImpl(
         get() =
             IMessageCommandBuilderImpl(
                 this, guildIdList, applicationId ?: throw ApplicationIdNotSetException())
+
+    override val embedBuilder: EmbedBuilder
+        get() = EmbedBuilderImpl(this)
 
     override fun setGuildIds(vararg guildIds: String) {
         guildIds.forEach { this.guildIdList.add(it) }

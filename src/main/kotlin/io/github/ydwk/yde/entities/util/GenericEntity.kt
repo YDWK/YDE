@@ -23,7 +23,7 @@ import io.github.ydwk.yde.YDE
 
 interface GenericEntity {
 
-    /** The main YDWK instance. */
+    /** The main YDE instance. */
     val yde: YDE
 
     /** The json representation of this entity. */

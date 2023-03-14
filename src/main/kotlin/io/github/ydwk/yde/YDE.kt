@@ -33,6 +33,7 @@ import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.channel.GuildChannel
 import io.github.ydwk.yde.entities.channel.getter.guild.GuildChannelGetter
 import io.github.ydwk.yde.entities.guild.Member
+import io.github.ydwk.yde.entities.message.embed.builder.EmbedBuilder
 import io.github.ydwk.yde.rest.RestApiManager
 import io.github.ydwk.yde.util.Incubating
 import java.util.concurrent.CompletableFuture
@@ -315,6 +316,13 @@ interface YDE {
 
     /** Adds or removes message commands. */
     val messageCommandBuilder: IMessageCommandBuilder
+
+    /**
+     * Used to build embeds.
+     *
+     * @return The [EmbedBuilder] object.
+     */
+    val embedBuilder: EmbedBuilder
 
     /** Sets the guild ids for guild commands */
     fun setGuildIds(vararg guildIds: String)
