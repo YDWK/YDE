@@ -74,6 +74,7 @@ open class EndPoint {
         GET_AUDIT_LOGS("/guilds/%s/audit-logs"),
         GET_MEMBERS("/guilds/%s/members"),
         GET_GUILD("/guilds/%s"),
+        GET_GUILDS("/guilds"),
         GET_GUILD_CHANNELS("/guilds/%s/channels"),
         GET_MEMBER("/guilds/%s/members/%s"),
         CREATE_GUILD("/guilds"),
@@ -89,7 +90,8 @@ open class EndPoint {
 
     enum class UserEndpoint(private val endPoint: String) : IEnumEndpoint {
         CREATE_DM("/users/@me/channels"),
-        GET_USER("/users/%s");
+        GET_USER("/users/%s"),
+        GET_USERS("/users");
 
         override fun getEndpoint(): String {
             return endPoint

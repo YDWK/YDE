@@ -61,12 +61,12 @@ open class YDEImpl(
     open var applicationId: String? = null,
     protected open val client: OkHttpClient,
     protected open var guildIdList: MutableList<String> = mutableListOf(),
-    open override val githubRepositoryUrl: String,
-    open override val wrapperVersion: String,
+    override val githubRepositoryUrl: String,
+    override val wrapperVersion: String,
 ) : YDE {
     val logger: Logger = LoggerFactory.getLogger(YDEImpl::class.java)
 
-    protected val allowedCache: MutableSet<CacheIds> = mutableSetOf()
+    private val allowedCache: MutableSet<CacheIds> = mutableSetOf()
     val cache: Cache = PerpetualCache(allowedCache)
     val memberCache: MemberCache = MemberCacheImpl(allowedCache)
 
@@ -128,6 +128,14 @@ open class YDEImpl(
         }
     }
 
+    override fun requestUsers(): CompletableFuture<List<User>> {
+        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USERS).execute { it ->
+            val jsonBody = it.jsonBody
+            jsonBody?.map { UserImpl(it, it["id"].asLong(), this) }
+                ?: throw IllegalStateException("json body is null")
+        }
+    }
+
     override fun requestGuild(guildId: Long): CompletableFuture<Guild> {
         return this.restApiManager
             .get(EndPoint.GuildEndpoint.GET_GUILD, guildId.toString())
@@ -141,8 +149,20 @@ open class YDEImpl(
             }
     }
 
+    override fun requestGuilds(): CompletableFuture<List<Guild>> {
+        return this.restApiManager.get(EndPoint.GuildEndpoint.GET_GUILDS).execute { it ->
+            val jsonBody = it.jsonBody
+            jsonBody?.map { GuildImpl(this, it, it["id"].asLong()) }
+                ?: throw IllegalStateException("json body is null")
+        }
+    }
+
     override fun getGuildById(id: String): Guild? {
         return cache[id, CacheIds.GUILD] as Guild?
+    }
+
+    override fun getGuilds(): List<Guild> {
+        return cache.values(CacheIds.GUILD).map { it as Guild }
     }
 
     override fun getChannelById(id: Long): Channel? {

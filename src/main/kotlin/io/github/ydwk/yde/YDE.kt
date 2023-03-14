@@ -152,6 +152,13 @@ interface YDE {
     fun requestUser(id: String): CompletableFuture<User> = requestUser(id.toLong())
 
     /**
+     * Requests all the users the bot can see.
+     *
+     * @return The [CompletableFuture] object.
+     */
+    fun requestUsers(): CompletableFuture<List<User>>
+
+    /**
      * Requests a guild using its id.
      *
      * @param id The id of the guild.
@@ -168,6 +175,13 @@ interface YDE {
     fun requestGuild(guildId: String): CompletableFuture<Guild> = requestGuild(guildId.toLong())
 
     /**
+     * Requests all the guilds the bot is in.
+     *
+     * @return The [CompletableFuture] object.
+     */
+    fun requestGuilds(): CompletableFuture<List<Guild>>
+
+    /**
      * Gets a guild by its id.
      *
      * @param id The id of the guild.
@@ -182,6 +196,13 @@ interface YDE {
      * @return The [Guild] object.
      */
     fun getGuildById(id: String): Guild?
+
+    /**
+     * Gets all the guilds the bot is in.
+     *
+     * @return A list of [Guild] objects.
+     */
+    fun getGuilds(): List<Guild>
 
     /**
      * Gets a channel by its id.
@@ -301,29 +322,6 @@ interface YDE {
     fun requestGuildChannels(guildId: String): CompletableFuture<List<GuildChannel>> =
         requestGuildChannels(guildId.toLong())
 
-    /**
-     * The entity builder.
-     *
-     * @return The [EntityBuilder] object.
-     */
-    @get:Incubating val entityBuilder: EntityBuilder
-
-    /** Adds or removes slash commands */
-    val slashBuilder: ISlashCommandBuilder
-
-    /** Adds or removes user commands. */
-    val userCommandBuilder: IUserCommandBuilder
-
-    /** Adds or removes message commands. */
-    val messageCommandBuilder: IMessageCommandBuilder
-
-    /**
-     * Used to build embeds.
-     *
-     * @return The [EmbedBuilder] object.
-     */
-    val embedBuilder: EmbedBuilder
-
     /** Sets the guild ids for guild commands */
     fun setGuildIds(vararg guildIds: String)
 
@@ -384,6 +382,29 @@ interface YDE {
      * @return the [Bot] object
      */
     val bot: Bot?
+
+    /**
+     * The entity builder.
+     *
+     * @return The [EntityBuilder] object.
+     */
+    @get:Incubating val entityBuilder: EntityBuilder
+
+    /** Adds or removes slash commands */
+    val slashBuilder: ISlashCommandBuilder
+
+    /** Adds or removes user commands. */
+    val userCommandBuilder: IUserCommandBuilder
+
+    /** Adds or removes message commands. */
+    val messageCommandBuilder: IMessageCommandBuilder
+
+    /**
+     * Used to build embeds.
+     *
+     * @return The [EmbedBuilder] object.
+     */
+    val embedBuilder: EmbedBuilder
 
     /**
      * Overrides the custom to string method.
