@@ -36,7 +36,6 @@ import io.github.ydwk.yde.impl.interaction.application.ApplicationCommandImpl
 import io.github.ydwk.yde.impl.interaction.application.ApplicationCommandOptionImpl
 import io.github.ydwk.yde.impl.interaction.application.sub.ReplyImpl
 import io.github.ydwk.yde.interaction.Interaction
-import io.github.ydwk.yde.interaction.application.ApplicationCommandOption
 import io.github.ydwk.yde.interaction.application.sub.Reply
 import io.github.ydwk.yde.interaction.application.type.SlashCommand
 import io.github.ydwk.yde.util.EntityToStringBuilder
@@ -57,67 +56,85 @@ class SlashCommandImpl(yde: YDE, json: JsonNode, idAsLong: Long, interaction: In
     override val options: List<SlashOptionGetter>
         get() {
             val map: MutableMap<Long, GenericEntity> = mutableMapOf()
+            val options: JsonNode? = json["options"]
             val resolved: JsonNode? = json["resolved"]
 
-            if (resolved == null) {
-                return emptyList()
+            return if (resolved == null) {
+                handleOptions(options, map)
             } else {
-
-                resolved["users"]?.let {
-                    it.fields().forEach { (id, node) ->
-                        map[id.toLong()] = UserImpl(node, node["id"].asLong(), yde)
-                    }
-                }
-                resolved["attachments"]?.let {
-                    it.fields().forEach { (id, node) ->
-                        map[id.toLong()] = AttachmentImpl(yde, node, node["id"].asLong())
-                    }
-                }
-
-                if (guild != null) {
-                    resolved["members"]?.let {
-                        it.fields().forEach { (id, node) ->
-                            resolved["users"]?.let { users ->
-                                val user = users[id]
-                                val member =
-                                    MemberImpl(
-                                        yde as YDEImpl,
-                                        node,
-                                        guild,
-                                        UserImpl(user, user["id"].asLong(), yde))
-
-                                val newMember = yde.memberCache.getOrPut(member)
-                                map[id.toLong()] = newMember
-                            }
-                        }
-                    }
-
-                    resolved["roles"]?.let {
-                        it.fields().forEach { (id, node) ->
-                            map[id.toLong()] = RoleImpl(yde, node, node["id"].asLong())
-                        }
-                    }
-
-                    resolved["channels"]?.let {
-                        it.fields().forEach { (id, node) ->
-                            val channelType = ChannelType.fromInt(node["type"].asInt())
-                            if (ChannelType.isGuildChannel(channelType)) {
-                                map[id.toLong()] = GuildChannelImpl(yde, node, node["id"].asLong())
-                            } else {
-                                map[id.toLong()] = DmChannelImpl(yde, node, node["id"].asLong())
-                            }
-                        }
-                    }
-                }
-
-                return applicationOptions?.map { SlashOptionGetterImpl(it, map) } ?: emptyList()
+                handleResolved(resolved, map, options)
             }
         }
 
-    // ignore
-    private val applicationOptions: List<ApplicationCommandOption>? =
-        if (json.has("options")) json["options"].map { ApplicationCommandOptionImpl(yde, it) }
-        else null
+    private fun handleResolved(
+        resolved: JsonNode,
+        map: MutableMap<Long, GenericEntity>,
+        options: JsonNode?
+    ): List<SlashOptionGetter> {
+        resolved["users"]?.let {
+            it.fields().forEach { (id, node) ->
+                map[id.toLong()] = UserImpl(node, node["id"].asLong(), yde)
+            }
+        }
+        resolved["attachments"]?.let {
+            it.fields().forEach { (id, node) ->
+                map[id.toLong()] = AttachmentImpl(yde, node, node["id"].asLong())
+            }
+        }
+
+        if (guild != null) {
+            resolved["members"]?.let {
+                it.fields().forEach { (id, node) ->
+                    resolved["users"]?.let { users ->
+                        val user = users[id]
+                        val member =
+                            MemberImpl(
+                                yde as YDEImpl,
+                                node,
+                                guild,
+                                UserImpl(user, user["id"].asLong(), yde))
+
+                        val newMember = yde.memberCache.getOrPut(member)
+                        map[id.toLong()] = newMember
+                    }
+                }
+            }
+
+            resolved["roles"]?.let {
+                it.fields().forEach { (id, node) ->
+                    map[id.toLong()] = RoleImpl(yde, node, node["id"].asLong())
+                }
+            }
+
+            resolved["channels"]?.let {
+                it.fields().forEach { (id, node) ->
+                    val channelType = ChannelType.fromInt(node["type"].asInt())
+                    if (ChannelType.isGuildChannel(channelType)) {
+                        map[id.toLong()] = GuildChannelImpl(yde, node, node["id"].asLong())
+                    } else {
+                        map[id.toLong()] = DmChannelImpl(yde, node, node["id"].asLong())
+                    }
+                }
+            }
+        }
+
+        return handleOptions(options, map)
+    }
+
+    private fun handleOptions(
+        options: JsonNode?,
+        map: MutableMap<Long, GenericEntity>
+    ): List<SlashOptionGetter> {
+        val list: MutableList<SlashOptionGetter> = mutableListOf()
+
+        options?.forEach { node ->
+            val option = ApplicationCommandOptionImpl(yde, node)
+            list.add(SlashOptionGetterImpl(option, map))
+        }
+            ?: return emptyList()
+
+        return list
+    }
 
     override fun toString(): String {
         return EntityToStringBuilder(yde, this).name(this.name).toString()

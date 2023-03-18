@@ -68,8 +68,13 @@ class InteractionImpl(
             return null
         }
 
-    override val user: User? =
-        if (json.has("user")) UserImpl(json["user"], json["user"]["id"].asLong(), yde) else null
+    override val user: User
+        get() {
+            return if (json.has("user")) UserImpl(json["user"], json["user"]["id"].asLong(), yde)
+            else if (json.has("member"))
+                UserImpl(json["member"]["user"], json["member"]["user"]["id"].asLong(), yde)
+            else throw IllegalStateException("No user or member found in interaction")
+        }
 
     override val token: String = json["token"].asText()
 

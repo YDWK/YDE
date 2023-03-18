@@ -77,7 +77,7 @@ interface Interaction : SnowFlake, GenericEntity {
      *
      * @return The user who invoked this interaction.
      */
-    val user: User?
+    val user: User
 
     /**
      * The token of this interaction.
