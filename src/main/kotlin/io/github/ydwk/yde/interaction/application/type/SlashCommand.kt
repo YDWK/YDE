@@ -121,4 +121,16 @@ interface SlashCommand : ApplicationCommand, Repliable {
         val option = getOption(name)
         return if (option == null) null else resolver(option)
     }
+
+    /**
+     * The option with the specified name.
+     *
+     * @param name The name of the option.
+     * @param resolver The resolver to use.
+     * @param default The default value to return if the option is not present.
+     */
+    fun <T> getOption(name: String, resolver: (SlashOptionGetter) -> T, default: T): T {
+        val option = getOption(name)
+        return if (option == null) default else resolver(option)
+    }
 }

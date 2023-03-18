@@ -55,7 +55,7 @@ abstract class ApplicationCommandImpl(
     override val targetId: GetterSnowFlake?
         get() = if (json.has("target_id")) GetterSnowFlake.of(json["target_id"].asLong()) else null
 
-    override val user: User? = interaction.user
+    override val user: User = interaction.user
 
     override val member: Member? = interaction.member
 

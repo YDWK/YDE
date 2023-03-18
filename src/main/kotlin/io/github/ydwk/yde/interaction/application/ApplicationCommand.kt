@@ -105,7 +105,7 @@ interface ApplicationCommand : SnowFlake, GenericCommandData {
      *
      * @return The user who invoked the command.
      */
-    val user: User?
+    val user: User
 
     /**
      * The member who invoked the command.
