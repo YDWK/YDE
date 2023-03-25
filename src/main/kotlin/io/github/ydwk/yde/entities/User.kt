@@ -21,13 +21,10 @@ package io.github.ydwk.yde.entities
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
-import io.github.ydwk.yde.rest.EndPoint
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
 import java.awt.Color
-import java.util.concurrent.CompletableFuture
-import okhttp3.RequestBody.Companion.toRequestBody
 
 interface User : SnowFlake, GenericEntity, NameAbleEntity, SendAble {
     /**
@@ -114,23 +111,6 @@ interface User : SnowFlake, GenericEntity, NameAbleEntity, SendAble {
      *
      * @return a dm channel with this user.
      */
-    val createDmChannel: CompletableFuture<DmChannel>
-        get() {
-            return yde.restApiManager
-                .post(
-                    yde.objectMapper
-                        .createObjectNode()
-                        .put("recipient_id", id)
-                        .toString()
-                        .toRequestBody(),
-                    EndPoint.UserEndpoint.CREATE_DM)
-                .execute {
-                    val jsonBody = it.jsonBody
-                    if (jsonBody == null) {
-                        throw IllegalStateException("json body is null")
-                    } else {
-                        DmChannelImpl(yde, jsonBody, jsonBody["id"].asLong())
-                    }
-                }
-        }
+    val createDmChannel: RestExecutableRestAction<DmChannel>
+        get() = yde.restAPIMethodGetters.getUserRestAPIMethods().createDm(idAsLong)
 }

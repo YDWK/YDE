@@ -25,20 +25,17 @@ import io.github.ydwk.yde.entities.Guild
 import io.github.ydwk.yde.entities.Sticker
 import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.channel.GuildChannel
-import io.github.ydwk.yde.entities.guild.Ban
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.guild.Role
 import io.github.ydwk.yde.entities.guild.WelcomeScreen
 import io.github.ydwk.yde.entities.guild.enums.*
 import io.github.ydwk.yde.impl.YDEImpl
-import io.github.ydwk.yde.impl.entities.guild.BanImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 import io.github.ydwk.yde.impl.entities.guild.RoleImpl
 import io.github.ydwk.yde.impl.entities.guild.WelcomeScreenImpl
 import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
-import java.util.concurrent.CompletableFuture
 
 class GuildImpl(override val yde: YDE, override val json: JsonNode, override val idAsLong: Long) :
     Guild {
@@ -155,15 +152,6 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
     override var isBoostProgressBarEnabled: Boolean =
         json["premium_progress_bar_enabled"].asBoolean()
 
-    override val requestBans: CompletableFuture<List<Ban>>
-        get() {
-            return yde.restApiManager.get(EndPoint.GuildEndpoint.GET_BANS, id).execute { it ->
-                val jsonBody = it.jsonBody
-                jsonBody?.map { BanImpl(yde, it) }
-                    ?: throw IllegalStateException("Response body is null")
-            }
-        }
-
     override val voiceStates: List<VoiceState>
         get() {
             val voiceStates =
@@ -189,7 +177,7 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
                 id, yde.bot?.id ?: throw IllegalStateException("Bot id is null"))
                 ?: yde.restApiManager
                     .get(EndPoint.GuildEndpoint.GET_MEMBER, id, yde.bot?.id!!)
-                    .execute { it ->
+                    .executeGetterRestAction() { it ->
                         val jsonBody = it.jsonBody
                         jsonBody?.let {
                             val member = MemberImpl(yde as YDEImpl, it, this)

@@ -30,7 +30,7 @@ import io.github.ydwk.yde.entities.message.MessageFlag
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.impl.entities.MessageImpl
 import io.github.ydwk.yde.rest.EndPoint
-import java.util.concurrent.CompletableFuture
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MessageBuilder {
@@ -133,7 +133,7 @@ class MessageBuilder {
      * @param channel The channel to send the message to.
      * @return The [Message] that was sent.
      */
-    fun send(sendeadble: SendAble): CompletableFuture<Message> {
+    fun send(sendeadble: SendAble): RestExecutableRestAction<Message> {
         return when (sendeadble) {
             is TextChannel -> {
                 sendToTextChannel(sendeadble)
@@ -156,14 +156,14 @@ class MessageBuilder {
      * @param channel The channel to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToTextChannel(channel: TextChannel): CompletableFuture<Message> {
+    private fun sendToTextChannel(channel: TextChannel): RestExecutableRestAction<Message> {
         val body = sendMessageToChannelBody(channel.yde, content, tts, embeds, flags)
         return channel.yde.restApiManager
             .post(
                 body.toString().toRequestBody(),
                 EndPoint.ChannelEndpoint.CREATE_MESSAGE,
                 channel.id)
-            .execute { response ->
+            .executeExecutableRestAction { response ->
                 val json = response.jsonBody
                 if (json == null) {
                     throw IllegalStateException("Response body is null")
@@ -179,7 +179,7 @@ class MessageBuilder {
      * @param member The member to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToMember(member: Member): CompletableFuture<Message> {
+    private fun sendToMember(member: Member): RestExecutableRestAction<Message> {
         return send(member.user as SendAble)
     }
 
@@ -189,8 +189,9 @@ class MessageBuilder {
      * @param user The user to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToUser(user: User): CompletableFuture<Message> {
+    private fun sendToUser(user: User): RestExecutableRestAction<Message> {
         return user.createDmChannel.thenCompose { channel -> send(channel) }
+            as RestExecutableRestAction<Message>
     }
 
     private fun sendMessageToChannelBody(
