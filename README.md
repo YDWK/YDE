@@ -5,7 +5,7 @@
 
 # YDE 
 
-YDE contains most of if not all of the discord entitles which are used in [ydwk](https://github.com/YDWK/YDWK) and these discord entitles try as much as possible to adhere to the way discord has some but has some changes here and there such as with some minor changes to name or where some variables are located in some files but these changes do not make it significantly different.
+YDE contains most of if not all of the discord entitles which are used in [ydwk](https://github.com/YDWK/YDWK) and these discord entities try as much as possible to adhere to the way discord has some but have some minor changes here and there such as with some minor changes to name or where some variables are located in some files but these changes do not make it significantly different.
 
 ## :package: Installation
 
