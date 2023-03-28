@@ -3,6 +3,10 @@
 [![codecov](https://codecov.io/gh/YDWK/YDWK/branch/master/graph/badge.svg?token=LKIA8T6N6J)](https://codecov.io/gh/YDWK/YDWK)
 [![yde](https://img.shields.io/badge/YDE--Version-v1.0.6-blue)](https://github.com/YDWK/YDE/releases/tag/v1.0.6)
 
+# YDE 
+
+YDE contains most of if not all of the discord entitles which are used in [ydwk](https://github.com/YDWK/YDWK) and these discord entitles try as much as possible to adhere to the way discord has some but has some changes here and there such as with some minor changes to name or where some variables are located in some files but these changes do not make it significantly different.
+
 ## :package: Installation
 
 ### Grovy DLS gradle
