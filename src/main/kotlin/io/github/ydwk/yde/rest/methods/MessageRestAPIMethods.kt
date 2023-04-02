@@ -16,24 +16,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */ 
-package io.github.ydwk.yde.entities.builder
+package io.github.ydwk.yde.rest.methods
 
-import com.fasterxml.jackson.databind.JsonNode
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 
-interface GenericEntityBuilder<T> {
-
-    /**
-     * The json that will be sent to the discord api.
-     *
-     * @return The json that will be sent to the discord api.
-     */
-    val json: JsonNode
+interface MessageRestAPIMethods {
 
     /**
-     * Creates the new entity.
+     * Delete a message.
      *
-     * @return A completable future that completes with the created entity.
+     * @param messageId The id of the message to delete.
+     * @param channelId The id of the channel the message is in.
+     * @return A [NoResultExecutableRestAction] that will delete the message.
      */
-    fun create(): RestExecutableRestAction<T>
+    fun deleteMessage(messageId: Long, channelId: Long): NoResultExecutableRestAction
 }

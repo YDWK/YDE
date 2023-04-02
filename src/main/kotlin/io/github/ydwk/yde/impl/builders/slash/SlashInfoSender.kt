@@ -174,13 +174,15 @@ class SlashInfoSender(
     private fun getCurrentGlobalSlashCommandsNameAndIds(): Map<Long, String> {
         return yde.restApiManager
             .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
-            .execute { it ->
+            .executeGetterRestAction() { it ->
                 yde.logger.debug("Getting current global slash commands")
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
-                    return@execute emptyMap()
+                    return@executeGetterRestAction emptyMap()
                 } else {
-                    return@execute jsonBody.associate { it["id"].asLong() to it["name"].asText() }
+                    return@executeGetterRestAction jsonBody.associate {
+                        it["id"].asLong() to it["name"].asText()
+                    }
                 }
             }
             .get()
@@ -191,12 +193,12 @@ class SlashInfoSender(
             yde.restApiManager
                 .get(
                     EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS, applicationId, guildId)
-                .execute { it ->
+                .executeGetterRestAction() { it ->
                     val jsonBody = it.jsonBody
                     if (jsonBody == null) {
-                        return@execute emptyMap()
+                        return@executeGetterRestAction emptyMap()
                     } else {
-                        return@execute jsonBody.associate {
+                        return@executeGetterRestAction jsonBody.associate {
                             it["id"].asLong() to it["name"].asText()
                         }
                     }

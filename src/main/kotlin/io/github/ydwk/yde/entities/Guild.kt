@@ -18,7 +18,6 @@
  */ 
 package io.github.ydwk.yde.entities
 
-import com.fasterxml.jackson.databind.node.ArrayNode
 import io.github.ydwk.yde.entities.audit.AuditLogType
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.channel.GuildChannel
@@ -32,18 +31,14 @@ import io.github.ydwk.yde.entities.guild.Role
 import io.github.ydwk.yde.entities.guild.WelcomeScreen
 import io.github.ydwk.yde.entities.guild.enums.*
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.impl.YDEImpl
-import io.github.ydwk.yde.impl.entities.AuditLogImpl
-import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
-import io.github.ydwk.yde.impl.entities.guild.MemberImpl
-import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.result.NoResult
+import io.github.ydwk.yde.rest.action.GetterRestAction
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
-import okhttp3.RequestBody.Companion.toRequestBody
 
 /** This class is used to represent a discord guild object. */
 interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
@@ -312,7 +307,10 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @return a list of ban's for the guild.
      */
-    val requestBans: CompletableFuture<List<Ban>>
+    val requestBans: GetterRestAction<List<Ban>>
+        get() {
+            return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedBanList(idAsLong)
+        }
 
     /**
      * All the current voice states for the guild.
@@ -327,23 +325,8 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: Long): CompletableFuture<DmChannel> {
-        return yde.restApiManager
-            .post(
-                yde.objectMapper
-                    .createObjectNode()
-                    .put("recipient_id", id)
-                    .toString()
-                    .toRequestBody(),
-                EndPoint.UserEndpoint.CREATE_DM)
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    DmChannelImpl(yde, jsonBody, jsonBody["id"].asLong())
-                }
-            }
+    fun createDmChannel(userId: Long): RestExecutableRestAction<DmChannel> {
+        return yde.restAPIMethodGetters.getUserRestAPIMethods().createDm(userId)
     }
 
     /**
@@ -352,7 +335,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: String): CompletableFuture<DmChannel> =
+    fun createDmChannel(userId: String): RestExecutableRestAction<DmChannel> =
         createDmChannel(userId.toLong())
 
     /**
@@ -361,7 +344,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param user The user who you want to create a dm channel with.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(user: User): CompletableFuture<DmChannel> = createDmChannel(user.id)
+    fun createDmChannel(user: User): RestExecutableRestAction<DmChannel> = createDmChannel(user.id)
 
     /**
      * The bot as a member of the guild.
@@ -383,19 +366,10 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         userId: Long,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): CompletableFuture<NoResult> {
-        return yde.restApiManager
-            .put(
-                yde.objectMapper
-                    .createObjectNode()
-                    .put("delete_message_seconds", deleteMessageDuration.inWholeSeconds)
-                    .toString()
-                    .toRequestBody(),
-                EndPoint.GuildEndpoint.BAN,
-                id,
-                userId.toString())
-            .addReason(reason)
-            .executeWithNoResult()
+    ): NoResultExecutableRestAction {
+        return yde.restAPIMethodGetters
+            .getGuildRestAPIMethods()
+            .banUser(idAsLong, userId, deleteMessageDuration, reason)
     }
 
     /**
@@ -428,7 +402,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         userId: String,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): CompletableFuture<NoResult> = banUser(userId.toLong(), deleteMessageDuration, reason)
+    ): NoResultExecutableRestAction = banUser(userId.toLong(), deleteMessageDuration, reason)
 
     /**
      * Bans a user from the guild.
@@ -441,7 +415,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         user: User,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): CompletableFuture<NoResult> = banUser(user.id, deleteMessageDuration, reason)
+    ): NoResultExecutableRestAction = banUser(user.id, deleteMessageDuration, reason)
 
     /**
      * Bans a member from the guild.
@@ -455,7 +429,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         member: Member,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): CompletableFuture<NoResult> = banUser(member.user, deleteMessageDuration, reason)
+    ): NoResultExecutableRestAction = banUser(member.user, deleteMessageDuration, reason)
 
     /**
      * Unbans a user from the guild.
@@ -464,11 +438,8 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the unban.
      * @return A [CompletableFuture] that completes when the unban is created.
      */
-    fun unbanUser(userId: Long, reason: String? = null): CompletableFuture<NoResult> {
-        return yde.restApiManager
-            .delete(EndPoint.GuildEndpoint.BAN, id, userId.toString())
-            .addReason(reason)
-            .executeWithNoResult()
+    fun unbanUser(userId: Long, reason: String? = null): NoResultExecutableRestAction {
+        return yde.restAPIMethodGetters.getGuildRestAPIMethods().unbanUser(idAsLong, userId, reason)
     }
 
     /**
@@ -478,7 +449,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the unban.
      * @return A [CompletableFuture] that completes when the unban is created.
      */
-    fun unbanUser(userId: String, reason: String? = null): CompletableFuture<NoResult> =
+    fun unbanUser(userId: String, reason: String? = null): NoResultExecutableRestAction =
         unbanUser(userId.toLong(), reason)
 
     /**
@@ -488,7 +459,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the unban.
      * @return A [CompletableFuture] that completes when the unban is created.
      */
-    fun unbanUser(user: User, reason: String? = null): CompletableFuture<NoResult> =
+    fun unbanUser(user: User, reason: String? = null): NoResultExecutableRestAction =
         unbanUser(user.id, reason)
 
     /**
@@ -498,11 +469,10 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the kick.
      * @return A [CompletableFuture] that completes when the kick is created.
      */
-    fun kickMember(userId: Long, reason: String? = null): CompletableFuture<NoResult> {
-        return yde.restApiManager
-            .delete(EndPoint.GuildEndpoint.KICK, id, userId.toString())
-            .addReason(reason)
-            .executeWithNoResult()
+    fun kickMember(userId: Long, reason: String? = null): NoResultExecutableRestAction {
+        return yde.restAPIMethodGetters
+            .getGuildRestAPIMethods()
+            .kickMember(idAsLong, userId, reason)
     }
 
     /**
@@ -512,7 +482,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the kick.
      * @return A [CompletableFuture] that completes when the kick is created.
      */
-    fun kickMember(userId: String, reason: String? = null): CompletableFuture<NoResult> =
+    fun kickMember(userId: String, reason: String? = null): NoResultExecutableRestAction =
         kickMember(userId.toLong(), reason)
 
     /**
@@ -522,7 +492,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param reason The reason for the kick.
      * @return A [CompletableFuture] that completes when the kick is created.
      */
-    fun kickMember(member: Member, reason: String? = null): CompletableFuture<NoResult> =
+    fun kickMember(member: Member, reason: String? = null): NoResultExecutableRestAction =
         kickMember(member.user.id, reason)
 
     /**
@@ -539,32 +509,10 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         limit: Int = 50,
         before: GetterSnowFlake? = null,
         actionType: AuditLogType? = null,
-    ): CompletableFuture<AuditLog> {
-        val rest = yde.restApiManager
-
-        if (userId != null) {
-            rest.addQueryParameter("user_id", userId.asString)
-        }
-
-        if (before != null) {
-            rest.addQueryParameter("before", before.asString)
-        }
-
-        if (actionType != null) {
-            rest.addQueryParameter("action_type", actionType.getType().toString())
-        }
-
-        return rest
-            .addQueryParameter("limit", limit.toString())
-            .get(EndPoint.GuildEndpoint.GET_AUDIT_LOGS, id)
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    AuditLogImpl(yde, jsonBody)
-                }
-            }
+    ): GetterRestAction<AuditLog> {
+        return yde.restAPIMethodGetters
+            .getGuildRestAPIMethods()
+            .requestedAuditLog(idAsLong, userId, limit, before, actionType)
     }
 
     /**
@@ -572,7 +520,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @return A [CompletableFuture] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(): CompletableFuture<AuditLog> =
+    fun requestedAuditLog(): GetterRestAction<AuditLog> =
         requestedAuditLog(GetterSnowFlake.asNull, 50, null, null)
 
     /**
@@ -581,7 +529,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @return A [CompletableFuture] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(userId: GetterSnowFlake): CompletableFuture<AuditLog> =
+    fun requestedAuditLog(userId: GetterSnowFlake): GetterRestAction<AuditLog> =
         requestedAuditLog(userId, 50, null, null)
 
     /**
@@ -591,7 +539,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @return A [CompletableFuture] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(userId: GetterSnowFlake, limit: Int): CompletableFuture<AuditLog> =
+    fun requestedAuditLog(userId: GetterSnowFlake, limit: Int): GetterRestAction<AuditLog> =
         requestedAuditLog(userId, limit, null, null)
 
     /**
@@ -606,7 +554,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         userId: GetterSnowFlake,
         limit: Int,
         before: GetterSnowFlake,
-    ): CompletableFuture<AuditLog> = requestedAuditLog(userId, limit, before, null)
+    ): GetterRestAction<AuditLog> = requestedAuditLog(userId, limit, before, null)
 
     /**
      * Request the audit log for the guild.
@@ -622,7 +570,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         limit: Int = 50,
         before: GetterSnowFlake? = null,
         actionType: AuditLogType? = null,
-    ): CompletableFuture<AuditLog> = requestedAuditLog(user, limit, before, actionType)
+    ): GetterRestAction<AuditLog> = requestedAuditLog(user, limit, before, actionType)
 
     /**
      * Request the audit log for the guild.
@@ -630,7 +578,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param user The user to filter by.
      * @return A [CompletableFuture] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(user: User): CompletableFuture<AuditLog> =
+    fun requestedAuditLog(user: User): GetterRestAction<AuditLog> =
         requestedAuditLog(user, 50, null, null)
 
     /**
@@ -640,7 +588,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @return A [CompletableFuture] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(user: User, limit: Int): CompletableFuture<AuditLog> =
+    fun requestedAuditLog(user: User, limit: Int): GetterRestAction<AuditLog> =
         requestedAuditLog(user, limit, null, null)
 
     /**
@@ -655,7 +603,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         user: User,
         limit: Int,
         before: GetterSnowFlake,
-    ): CompletableFuture<AuditLog> = requestedAuditLog(user, limit, before, null)
+    ): GetterRestAction<AuditLog> = requestedAuditLog(user, limit, before, null)
 
     /**
      * Gets a role from the guild.
@@ -751,20 +699,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @return The members.
      */
-    val retrieveMembers: CompletableFuture<List<Member>>
+    val retrieveMembers: GetterRestAction<List<Member>>
         get() {
-            return yde.restApiManager
-                .addQueryParameter("limit", "")
-                .get(EndPoint.GuildEndpoint.GET_MEMBERS, id)
-                .execute {
-                    val jsonBody = it.jsonBody
-                    val members: ArrayNode = jsonBody as ArrayNode
-                    val memberList = mutableListOf<Member>()
-                    for (member in members) {
-                        memberList.add(MemberImpl(yde as YDEImpl, member, this))
-                    }
-                    memberList
-                }
+            return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedMembers(this)
         }
 
     /**
@@ -773,19 +710,8 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit The limit of members to retrieve.
      * @return The members.
      */
-    fun retrieveMembers(limit: Int): CompletableFuture<List<Member>> {
-        return yde.restApiManager
-            .addQueryParameter("limit", limit.toString())
-            .get(EndPoint.GuildEndpoint.GET_MEMBERS, id)
-            .execute {
-                val jsonBody = it.jsonBody
-                val members: ArrayNode = jsonBody as ArrayNode
-                val memberList = mutableListOf<Member>()
-                for (member in members) {
-                    memberList.add(MemberImpl(yde as YDEImpl, member, this))
-                }
-                memberList
-            }
+    fun retrieveMembers(limit: Int): GetterRestAction<List<Member>> {
+        return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedMembers(this, limit)
     }
 
     /**

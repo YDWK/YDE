@@ -16,32 +16,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */ 
-package io.github.ydwk.yde.entities.channel
+package io.github.ydwk.yde.rest.methods
 
-import io.github.ydwk.yde.entities.User
+import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.util.GetterSnowFlake
 
-interface DmChannel : TextChannel {
+interface VoiceRestAPIMethods {
     /**
-     * The channel's last message id.
+     * Requests the voice region list from the Discord API.
      *
-     * @return the channel's last message id.
+     * @return A future containing the voice region list.
      */
-    var lastMessageId: GetterSnowFlake?
-
-    /**
-     * The recipient of the dm.
-     *
-     * @return the recipient of the dm.
-     */
-    var recipient: User?
-
-    /**
-     * Retrieves the recipient of the dm.
-     *
-     * @return the recipient of the dm.
-     */
-    val retrieveRecipient: GetterRestAction<User>
-        get() = yde.restAPIMethodGetters.getUserRestAPIMethods().requestUser(idAsLong)
+    fun requestVoiceRegions(): GetterRestAction<List<VoiceState.VoiceRegion>>
 }

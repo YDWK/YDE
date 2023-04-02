@@ -19,6 +19,9 @@
 package io.github.ydwk.yde.impl.rest.type
 
 import io.github.ydwk.yde.impl.YDEImpl
+import io.github.ydwk.yde.rest.action.ExtendableAction
+import io.github.ydwk.yde.rest.action.GetterRestAction
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.cf.CompletableFutureManager
 import io.github.ydwk.yde.rest.error.HttpResponseCode
 import io.github.ydwk.yde.rest.error.JsonErrorCode
@@ -27,7 +30,6 @@ import io.github.ydwk.yde.rest.type.SimilarRestApi
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import okhttp3.*
 import org.slf4j.LoggerFactory
@@ -73,7 +75,7 @@ open class SimilarRestApiImpl(
             client.newCall(builder.build()).execute().use { response ->
                 if (!response.isSuccessful) {
                     val code = response.code
-                    error(response.body, code, null, null)
+                    error(response.body, code, null)
                 } else {
                     responseBody = response.body
                 }
@@ -87,8 +89,8 @@ open class SimilarRestApiImpl(
 
     override fun <T : Any> execute(
         function: Function<CompletableFutureManager, T>,
-    ): CompletableFuture<T> {
-        val queue = CompletableFuture<T>()
+    ): ExtendableAction<T> {
+        val queue = ExtendableAction<T>()
         try {
             client
                 .newCall(builder.build())
@@ -101,7 +103,7 @@ open class SimilarRestApiImpl(
                         override fun onResponse(call: Call, response: Response) {
                             if (!response.isSuccessful) {
                                 val code = response.code
-                                error(response.body, code, null, queue)
+                                error(response.body, code, queue)
                             }
                             responseBody = response.body
                             val manager = CompletableFutureManager(response, yde)
@@ -117,8 +119,8 @@ open class SimilarRestApiImpl(
         return queue
     }
 
-    override fun executeWithNoResult(): CompletableFuture<NoResult> {
-        val queue = CompletableFuture<NoResult>()
+    override fun executeWithNoResult(): NoResultExecutableRestAction {
+        val queue = NoResultExecutableRestAction()
         try {
             client
                 .newCall(builder.build())
@@ -131,7 +133,7 @@ open class SimilarRestApiImpl(
                         override fun onResponse(call: Call, response: Response) {
                             if (!response.isSuccessful) {
                                 val code = response.code
-                                error(response.body, code, queue, null)
+                                error(response.body, code, queue)
                             }
                             responseBody = response.body
                             queue.complete(NoResult(Instant.now().toString()))
@@ -148,11 +150,10 @@ open class SimilarRestApiImpl(
     fun error(
         body: ResponseBody,
         code: Int,
-        queueWithNoResult: CompletableFuture<NoResult>?,
-        queueWithResult: CompletableFuture<*>?,
+        queue: ExtendableAction<*>?,
     ) {
         if (HttpResponseCode.fromInt(code) == HttpResponseCode.TOO_MANY_REQUESTS) {
-            handleRateLimit(body, queueWithNoResult, queueWithResult)
+            handleRateLimit(body, queue)
         } else if (HttpResponseCode.fromInt(code) != HttpResponseCode.UNKNOWN) {
             handleHttpResponse(body, code)
         } else if (JsonErrorCode.fromInt(code) != JsonErrorCode.UNKNOWN) {
@@ -164,8 +165,7 @@ open class SimilarRestApiImpl(
 
     private fun handleRateLimit(
         body: ResponseBody,
-        queueWithNoResult: CompletableFuture<NoResult>?,
-        queueWithResult: CompletableFuture<*>?,
+        queue: ExtendableAction<*>?,
     ) {
         val jsonNode = yde.objectMapper.readTree(body.string())
         val retryAfter = jsonNode.get("retry_after").asLong()
@@ -177,7 +177,7 @@ open class SimilarRestApiImpl(
             } catch (e: InterruptedException) {
                 logger.error("Error while sleeping", e)
             }
-            completeReTry(queueWithNoResult, queueWithResult)
+            completeReTry(queue)
         } else {
             logger.debug("Rate limit reached, retrying in $retryAfter ms")
             try {
@@ -185,19 +185,18 @@ open class SimilarRestApiImpl(
             } catch (e: InterruptedException) {
                 logger.error("Error while sleeping", e)
             }
-            completeReTry(queueWithNoResult, queueWithResult)
+            completeReTry(queue)
         }
     }
 
     private fun completeReTry(
-        queueWithNoResult: CompletableFuture<NoResult>?,
-        queueWithResult: CompletableFuture<*>?,
+        queue: ExtendableAction<*>?,
     ) {
-        if (queueWithNoResult != null) {
-            executeWithNoResult().thenAccept { queueWithNoResult.complete(null) }
+        if (queue is NoResultExecutableRestAction) {
+            executeWithNoResult().thenAccept { queue.complete(null) }
             logger.debug(HttpResponseCode.OK.getMessage())
-        } else if (queueWithResult != null) {
-            execute { queueWithResult.complete(null) }
+        } else if (queue is GetterRestAction<*>) {
+            execute { queue.complete(null) }
             logger.debug(HttpResponseCode.OK.getMessage())
         } else {
             execute()

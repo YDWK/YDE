@@ -24,10 +24,9 @@ import io.github.ydwk.yde.entities.message.*
 import io.github.ydwk.yde.entities.sticker.StickerItem
 import io.github.ydwk.yde.entities.util.GenericEntity
 import io.github.ydwk.yde.interaction.message.Component
-import io.github.ydwk.yde.rest.result.NoResult
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.SnowFlake
-import java.util.concurrent.CompletableFuture
 
 interface Message : SnowFlake, GenericEntity {
     /**
@@ -226,5 +225,9 @@ interface Message : SnowFlake, GenericEntity {
      *
      * @return A future which returns nothing.
      */
-    fun delete(): CompletableFuture<NoResult>
+    fun delete(): NoResultExecutableRestAction {
+        return yde.restAPIMethodGetters
+            .getMessageRestAPIMethods()
+            .deleteMessage(channel.idAsLong, idAsLong)
+    }
 }

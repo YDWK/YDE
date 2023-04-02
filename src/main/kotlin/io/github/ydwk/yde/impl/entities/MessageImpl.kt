@@ -36,12 +36,9 @@ import io.github.ydwk.yde.impl.entities.message.*
 import io.github.ydwk.yde.impl.entities.sticker.StickerItemImpl
 import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.message.Component
-import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.formatZonedDateTime
-import java.util.concurrent.CompletableFuture
 
 class MessageImpl(
     override val yde: YDE,
@@ -201,12 +198,6 @@ class MessageImpl(
 
     override val position: Long?
         get() = if (json.has("position")) json.get("position").asLong() else null
-
-    override fun delete(): CompletableFuture<NoResult> {
-        return yde.restApiManager
-            .delete(EndPoint.MessageEndpoint.DELETE_MESSAGE, channel.id, id)
-            .executeWithNoResult()
-    }
 
     override fun toString(): String {
         return EntityToStringBuilder(yde, this).toString()

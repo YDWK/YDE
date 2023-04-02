@@ -16,32 +16,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */ 
-package io.github.ydwk.yde.entities.channel
+package io.github.ydwk.yde.rest.methods
 
 import io.github.ydwk.yde.entities.User
+import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.util.GetterSnowFlake
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 
-interface DmChannel : TextChannel {
+interface UserRestAPIMethods {
     /**
-     * The channel's last message id.
+     * Creates a direct message channel with this user.
      *
-     * @return the channel's last message id.
+     * @param id the id of the user.
+     * @return a future containing the direct message channel.
      */
-    var lastMessageId: GetterSnowFlake?
-
-    /**
-     * The recipient of the dm.
-     *
-     * @return the recipient of the dm.
-     */
-    var recipient: User?
+    fun createDm(id: Long): RestExecutableRestAction<DmChannel>
 
     /**
-     * Retrieves the recipient of the dm.
+     * Request a user by its id.
      *
-     * @return the recipient of the dm.
+     * @param id the id of the user.
+     * @return a future containing the user.
      */
-    val retrieveRecipient: GetterRestAction<User>
-        get() = yde.restAPIMethodGetters.getUserRestAPIMethods().requestUser(idAsLong)
+    fun requestUser(id: Long): GetterRestAction<User>
+
+    /**
+     * Request to get a list of all the users that are visible to the bot.
+     *
+     * @return a future containing the list of users.
+     */
+    fun requestUsers(): GetterRestAction<List<User>>
 }

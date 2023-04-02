@@ -26,7 +26,7 @@ import io.github.ydwk.yde.entities.channel.guild.message.text.PermissionOverwrit
 import io.github.ydwk.yde.entities.channel.guild.vc.GuildVoiceChannel
 import io.github.ydwk.yde.impl.entities.channel.guild.GuildVoiceChannelImpl
 import io.github.ydwk.yde.rest.EndPoint
-import java.util.concurrent.CompletableFuture
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class VoiceChannelBuilderImpl(val yde: YDE, val guildId: String?, val name: String) :
@@ -88,14 +88,14 @@ class VoiceChannelBuilderImpl(val yde: YDE, val guildId: String?, val name: Stri
             return json
         }
 
-    override fun create(): CompletableFuture<GuildVoiceChannel> {
+    override fun create(): RestExecutableRestAction<GuildVoiceChannel> {
         if (guildId == null) {
             throw IllegalStateException("Guild id is not set")
         }
 
         return yde.restApiManager
             .post(json.toString().toRequestBody(), EndPoint.GuildEndpoint.CREATE_CHANNEL, guildId)
-            .execute {
+            .executeExecutableRestAction() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")

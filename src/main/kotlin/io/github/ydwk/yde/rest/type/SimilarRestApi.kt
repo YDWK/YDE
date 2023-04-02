@@ -18,9 +18,11 @@
  */ 
 package io.github.ydwk.yde.rest.type
 
+import io.github.ydwk.yde.rest.action.ExtendableAction
+import io.github.ydwk.yde.rest.action.GetterRestAction
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.rest.cf.CompletableFutureManager
-import io.github.ydwk.yde.rest.result.NoResult
-import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import okhttp3.Headers
 
@@ -37,7 +39,19 @@ interface SimilarRestApi {
 
     fun execute()
 
-    fun <T : Any> execute(function: Function<CompletableFutureManager, T>): CompletableFuture<T>
+    fun <T : Any> execute(function: Function<CompletableFutureManager, T>): ExtendableAction<T>
 
-    fun executeWithNoResult(): CompletableFuture<NoResult>
+    fun <T : Any> executeGetterRestAction(
+        function: (t: CompletableFutureManager) -> T
+    ): GetterRestAction<T> {
+        return execute(function) as GetterRestAction<T>
+    }
+
+    fun <T : Any> executeExecutableRestAction(
+        function: Function<CompletableFutureManager, T>
+    ): RestExecutableRestAction<T> {
+        return execute(function) as RestExecutableRestAction<T>
+    }
+
+    fun executeWithNoResult(): NoResultExecutableRestAction
 }

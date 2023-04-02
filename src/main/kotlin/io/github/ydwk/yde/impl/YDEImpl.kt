@@ -31,28 +31,20 @@ import io.github.ydwk.yde.entities.Channel
 import io.github.ydwk.yde.entities.Guild
 import io.github.ydwk.yde.entities.User
 import io.github.ydwk.yde.entities.builder.EntityBuilder
-import io.github.ydwk.yde.entities.channel.DmChannel
-import io.github.ydwk.yde.entities.channel.GuildChannel
-import io.github.ydwk.yde.entities.channel.enums.ChannelType
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.message.embed.builder.EmbedBuilder
 import io.github.ydwk.yde.exceptions.ApplicationIdNotSetException
 import io.github.ydwk.yde.impl.builders.message.IMessageCommandBuilderImpl
 import io.github.ydwk.yde.impl.builders.slash.SlashBuilderImpl
 import io.github.ydwk.yde.impl.builders.user.IUserCommandBuilderImpl
-import io.github.ydwk.yde.impl.entities.GuildImpl
-import io.github.ydwk.yde.impl.entities.UserImpl
 import io.github.ydwk.yde.impl.entities.builder.EntityBuilderImpl
-import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
-import io.github.ydwk.yde.impl.entities.channel.guild.GuildChannelImpl
 import io.github.ydwk.yde.impl.entities.message.embed.builder.EmbedBuilderImpl
 import io.github.ydwk.yde.impl.rest.RestApiManagerImpl
-import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.rest.RestApiManager
+import io.github.ydwk.yde.rest.methods.RestAPIMethodGetterImpl
+import io.github.ydwk.yde.rest.methods.RestAPIMethodGetters
 import io.github.ydwk.yde.util.EntityToStringBuilder
-import java.util.concurrent.CompletableFuture
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -82,24 +74,8 @@ open class YDEImpl(
             return RestApiManagerImpl(botToken, this, client)
         }
 
-    override fun createDmChannel(userId: Long): CompletableFuture<DmChannel> {
-        return this.restApiManager
-            .post(
-                this.objectMapper
-                    .createObjectNode()
-                    .put("recipient_id", userId)
-                    .toString()
-                    .toRequestBody(),
-                EndPoint.UserEndpoint.CREATE_DM)
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    DmChannelImpl(this, jsonBody, jsonBody["id"].asLong())
-                }
-            }
-    }
+    override val restAPIMethodGetters: RestAPIMethodGetters
+        get() = RestAPIMethodGetterImpl(this)
 
     override fun getMemberById(guildId: Long, userId: Long): Member? {
         return memberCache[guildId.toString(), userId.toString()]
@@ -117,46 +93,6 @@ open class YDEImpl(
         return cache.values(CacheIds.USER).map { it as User }
     }
 
-    override fun requestUser(id: Long): CompletableFuture<User> {
-        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USER, id.toString()).execute {
-            val jsonBody = it.jsonBody
-            if (jsonBody == null) {
-                throw IllegalStateException("json body is null")
-            } else {
-                UserImpl(jsonBody, jsonBody["id"].asLong(), this)
-            }
-        }
-    }
-
-    override fun requestUsers(): CompletableFuture<List<User>> {
-        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USERS).execute { it ->
-            val jsonBody = it.jsonBody
-            jsonBody?.map { UserImpl(it, it["id"].asLong(), this) }
-                ?: throw IllegalStateException("json body is null")
-        }
-    }
-
-    override fun requestGuild(guildId: Long): CompletableFuture<Guild> {
-        return this.restApiManager
-            .get(EndPoint.GuildEndpoint.GET_GUILD, guildId.toString())
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    GuildImpl(this, jsonBody, jsonBody["id"].asLong())
-                }
-            }
-    }
-
-    override fun requestGuilds(): CompletableFuture<List<Guild>> {
-        return this.restApiManager.get(EndPoint.GuildEndpoint.GET_GUILDS).execute { it ->
-            val jsonBody = it.jsonBody
-            jsonBody?.map { GuildImpl(this, it, it["id"].asLong()) }
-                ?: throw IllegalStateException("json body is null")
-        }
-    }
-
     override fun getGuildById(id: String): Guild? {
         return cache[id, CacheIds.GUILD] as Guild?
     }
@@ -171,47 +107,6 @@ open class YDEImpl(
 
     override fun getChannels(): List<Channel> {
         return cache.values(CacheIds.CHANNEL).map { it as Channel }
-    }
-
-    override fun requestChannelById(id: Long): CompletableFuture<Channel> {
-        return this.restApiManager
-            .get(EndPoint.ChannelEndpoint.GET_CHANNEL, id.toString())
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    val channelType = ChannelType.fromInt(jsonBody["type"].asInt())
-                    if (ChannelType.isGuildChannel(channelType)) {
-                        GuildChannelImpl(this, jsonBody, jsonBody["id"].asLong())
-                    } else {
-                        DmChannelImpl(this, jsonBody, jsonBody["id"].asLong())
-                    }
-                }
-            }
-    }
-
-    override fun requestGuildChannelById(id: Long, guildId: Long): CompletableFuture<GuildChannel> {
-        return this.restApiManager
-            .get(EndPoint.ChannelEndpoint.GET_CHANNEL, id.toString())
-            .execute {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    GuildChannelImpl(this, jsonBody, jsonBody["id"].asLong())
-                }
-            }
-    }
-
-    override fun requestGuildChannels(guildId: Long): CompletableFuture<List<GuildChannel>> {
-        return this.restApiManager
-            .get(EndPoint.GuildEndpoint.GET_GUILD_CHANNELS, guildId.toString())
-            .execute { it ->
-                val jsonBody = it.jsonBody
-                jsonBody?.map { GuildChannelImpl(this, it, it["id"].asLong()) }
-                    ?: throw IllegalStateException("json body is null")
-            }
     }
 
     override val entityBuilder: EntityBuilder

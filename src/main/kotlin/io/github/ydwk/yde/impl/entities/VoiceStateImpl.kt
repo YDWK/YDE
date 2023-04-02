@@ -27,10 +27,8 @@ import io.github.ydwk.yde.entities.channel.guild.vc.GuildVoiceChannel
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
-import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.formatZonedDateTime
-import java.util.concurrent.CompletableFuture
 
 class VoiceStateImpl(
     override val yde: YDE,
@@ -92,17 +90,6 @@ class VoiceStateImpl(
 
     override val requestToSpeakTimestamp: String?
         get() = formatZonedDateTime(json["request_to_speak_timestamp"].asText())
-
-    override suspend fun requestVoiceRegion(): CompletableFuture<VoiceState.VoiceRegion> {
-        return yde.restApiManager.get(EndPoint.VoiceEndpoint.GET_VOICE_REGIONS).execute { it ->
-            val jsonBody = it.jsonBody
-            if (jsonBody == null) {
-                throw IllegalStateException("json body is null")
-            } else {
-                VoiceRegionImpl(yde, jsonBody, jsonBody["id"].asLong())
-            }
-        }
-    }
 
     override fun toString(): String {
         return EntityToStringBuilder(yde, this).add("sessionId", sessionId).toString()

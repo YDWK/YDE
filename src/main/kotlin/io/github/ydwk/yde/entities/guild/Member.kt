@@ -25,11 +25,11 @@ import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.rest.result.NoResult
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
-import java.util.concurrent.CompletableFuture
 
 /** This class is used to represent a discord guild member entity. */
 interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, PermissionEntity {
@@ -138,7 +138,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      *
      * @return A future that completes with the created channel.
      */
-    val createDmChannel: CompletableFuture<DmChannel>
+    val createDmChannel: RestExecutableRestAction<DmChannel>
         get() = user.createDmChannel
 
     /**
@@ -154,7 +154,10 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param role The role to add.
      * @return A future that completes with an empty result.
      */
-    fun addRole(role: Role): CompletableFuture<NoResult>
+    fun addRole(role: Role): NoResultExecutableRestAction =
+        yde.restAPIMethodGetters
+            .getMemberRestAPIMethods()
+            .removeRoleFromMember(guild.idAsLong, user.idAsLong, role.idAsLong)
 
     /**
      * Adds a list of roles to this member.
@@ -162,7 +165,10 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to add.
      * @return A future that completes with an empty result.
      */
-    fun addRoles(roles: List<Role>): List<CompletableFuture<NoResult>>
+    fun addRoles(roles: List<Role>): List<NoResultExecutableRestAction> =
+        yde.restAPIMethodGetters
+            .getMemberRestAPIMethods()
+            .addRolesToMember(guild.idAsLong, user.idAsLong, roles.map { it.idAsLong })
 
     /**
      * Adds a list of roles to this member.
@@ -170,7 +176,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to add.
      * @return A future that completes with an empty result.
      */
-    fun addRoles(vararg roles: Role): List<CompletableFuture<NoResult>> = addRoles(roles.toList())
+    fun addRoles(vararg roles: Role): List<NoResultExecutableRestAction> = addRoles(roles.toList())
 
     /**
      * Removes a role from this member.
@@ -178,7 +184,10 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param role The role to remove.
      * @return A future that completes with an empty result.
      */
-    fun removeRole(role: Role): CompletableFuture<NoResult>
+    fun removeRole(role: Role): NoResultExecutableRestAction =
+        yde.restAPIMethodGetters
+            .getMemberRestAPIMethods()
+            .removeRoleFromMember(guild.idAsLong, user.idAsLong, role.idAsLong)
 
     /**
      * Removes a list of roles from this member.
@@ -186,7 +195,10 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to remove.
      * @return A future that completes an empty result.
      */
-    fun removeRoles(roles: List<Role>): List<CompletableFuture<NoResult>>
+    fun removeRoles(roles: List<Role>): List<NoResultExecutableRestAction> =
+        yde.restAPIMethodGetters
+            .getMemberRestAPIMethods()
+            .removeRolesFromMember(guild.idAsLong, user.idAsLong, roles.map { it.idAsLong })
 
     /**
      * Removes a list of roles from this member.
@@ -194,6 +206,6 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to remove.
      * @return A future that completes with an empty result.
      */
-    fun removeRoles(vararg roles: Role): List<CompletableFuture<NoResult>> =
+    fun removeRoles(vararg roles: Role): List<NoResultExecutableRestAction> =
         removeRoles(roles.toList())
 }

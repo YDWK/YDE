@@ -27,8 +27,7 @@ import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.application.sub.Reply
 import io.github.ydwk.yde.interaction.sub.InteractionCallbackType
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.result.NoResult
-import java.util.concurrent.CompletableFuture
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class ReplyImpl(
@@ -68,7 +67,7 @@ class ReplyImpl(
         return this
     }
 
-    override fun triggerWithFuture(): CompletableFuture<NoResult> {
+    override fun triggerWithFuture(): NoResultExecutableRestAction {
         val mainBody =
             yde.objectNode.put(
                 "type", InteractionCallbackType.CHANNEL_MESSAGE_WITH_SOURCE.getType())

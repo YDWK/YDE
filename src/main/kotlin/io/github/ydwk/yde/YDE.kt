@@ -35,6 +35,9 @@ import io.github.ydwk.yde.entities.channel.getter.guild.GuildChannelGetter
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.message.embed.builder.EmbedBuilder
 import io.github.ydwk.yde.rest.RestApiManager
+import io.github.ydwk.yde.rest.action.GetterRestAction
+import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import io.github.ydwk.yde.rest.methods.RestAPIMethodGetters
 import io.github.ydwk.yde.util.Incubating
 import java.util.concurrent.CompletableFuture
 
@@ -62,12 +65,11 @@ interface YDE {
     val restApiManager: RestApiManager
 
     /**
-     * Creates a dm channel.
+     * The place where all the RestAPI Methods are stored.
      *
-     * @param userId The id of the user.
-     * @return The [DmChannel] object.
+     * @return The rest api methods.
      */
-    fun createDmChannel(userId: Long): CompletableFuture<DmChannel>
+    val restAPIMethodGetters: RestAPIMethodGetters
 
     /**
      * Creates a dm channel.
@@ -75,7 +77,16 @@ interface YDE {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: String): CompletableFuture<DmChannel> =
+    fun createDmChannel(userId: Long): RestExecutableRestAction<DmChannel> =
+        restAPIMethodGetters.getUserRestAPIMethods().createDm(userId)
+
+    /**
+     * Creates a dm channel.
+     *
+     * @param userId The id of the user.
+     * @return The [DmChannel] object.
+     */
+    fun createDmChannel(userId: String): RestExecutableRestAction<DmChannel> =
         createDmChannel(userId.toLong())
 
     /**
@@ -84,7 +95,7 @@ interface YDE {
      * @param user The user who you want to create a dm channel with.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(user: User): CompletableFuture<DmChannel> = createDmChannel(user.id)
+    fun createDmChannel(user: User): RestExecutableRestAction<DmChannel> = createDmChannel(user.id)
 
     /**
      * Gets a member by its id.
@@ -141,7 +152,8 @@ interface YDE {
      * @param id The id of the user.
      * @return The [CompletableFuture] object.
      */
-    fun requestUser(id: Long): CompletableFuture<User>
+    fun requestUser(id: Long): GetterRestAction<User> =
+        restAPIMethodGetters.getUserRestAPIMethods().requestUser(id)
 
     /**
      * Requests a user using its id.
@@ -149,14 +161,15 @@ interface YDE {
      * @param id The id of the user.
      * @return The [CompletableFuture] object.
      */
-    fun requestUser(id: String): CompletableFuture<User> = requestUser(id.toLong())
+    fun requestUser(id: String): GetterRestAction<User> = requestUser(id.toLong())
 
     /**
      * Requests all the users the bot can see.
      *
      * @return The [CompletableFuture] object.
      */
-    fun requestUsers(): CompletableFuture<List<User>>
+    fun requestUsers(): GetterRestAction<List<User>> =
+        restAPIMethodGetters.getUserRestAPIMethods().requestUsers()
 
     /**
      * Requests a guild using its id.
@@ -164,7 +177,8 @@ interface YDE {
      * @param id The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuild(guildId: Long): CompletableFuture<Guild>
+    fun requestGuild(guildId: Long): GetterRestAction<Guild> =
+        restAPIMethodGetters.getGuildRestAPIMethods().requestedGuild(guildId)
 
     /**
      * Requests a guild using its id.
@@ -172,14 +186,15 @@ interface YDE {
      * @param id The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuild(guildId: String): CompletableFuture<Guild> = requestGuild(guildId.toLong())
+    fun requestGuild(guildId: String): GetterRestAction<Guild> = requestGuild(guildId.toLong())
 
     /**
      * Requests all the guilds the bot is in.
      *
      * @return The [CompletableFuture] object.
      */
-    fun requestGuilds(): CompletableFuture<List<Guild>>
+    fun requestGuilds(): GetterRestAction<List<Guild>> =
+        restAPIMethodGetters.getGuildRestAPIMethods().requestedGuilds()
 
     /**
      * Gets a guild by its id.
@@ -276,7 +291,8 @@ interface YDE {
      * @param id The id of the channel.
      * @return The [CompletableFuture] object.
      */
-    fun requestChannelById(id: Long): CompletableFuture<Channel>
+    fun requestChannelById(id: Long): GetterRestAction<Channel> =
+        restAPIMethodGetters.getChannelRestAPIMethods().requestChannel(id)
 
     /**
      * Requests a channel using its id.
@@ -284,7 +300,7 @@ interface YDE {
      * @param id The id of the channel.
      * @return The [CompletableFuture] object.
      */
-    fun requestChannelById(id: String): CompletableFuture<Channel> = requestChannelById(id.toLong())
+    fun requestChannelById(id: String): GetterRestAction<Channel> = requestChannelById(id.toLong())
 
     /**
      * Requests a guild channel using its id.
@@ -293,7 +309,8 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannelById(id: Long, guildId: Long): CompletableFuture<GuildChannel>
+    fun requestGuildChannelById(id: Long, guildId: Long): GetterRestAction<GuildChannel> =
+        restAPIMethodGetters.getChannelRestAPIMethods().requestGuildChannel(id, guildId)
 
     /**
      * Requests a guild channel using its id.
@@ -302,7 +319,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannelById(id: String, guildId: String): CompletableFuture<GuildChannel> =
+    fun requestGuildChannelById(id: String, guildId: String): GetterRestAction<GuildChannel> =
         requestGuildChannelById(id.toLong(), guildId.toLong())
 
     /**
@@ -311,7 +328,8 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannels(guildId: Long): CompletableFuture<List<GuildChannel>>
+    fun requestGuildChannels(guildId: Long): GetterRestAction<List<GuildChannel>> =
+        restAPIMethodGetters.getChannelRestAPIMethods().requestGuildChannels(guildId)
 
     /**
      * Requests a list of guild channels by the guild id.
@@ -319,7 +337,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannels(guildId: String): CompletableFuture<List<GuildChannel>> =
+    fun requestGuildChannels(guildId: String): GetterRestAction<List<GuildChannel>> =
         requestGuildChannels(guildId.toLong())
 
     /** Sets the guild ids for guild commands */

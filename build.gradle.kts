@@ -69,6 +69,8 @@ dependencies {
 
 apply(from = "gradle/tasks/Nexus.gradle")
 
+apply(from = "gradle/tasks/GenerateKotlinCode.gradle.kts")
+
 tasks.test {
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport) // report is always generated after tests run
@@ -77,6 +79,7 @@ tasks.test {
 tasks.withType<KotlinCompile> { kotlinOptions.jvmTarget = "11" }
 
 tasks.build {
+    dependsOn(tasks.getByName("generateKotlinCode")) // generate code before building
     dependsOn(tasks.test) // run tests before building
 
     if (releaseVersion) {
@@ -306,3 +309,5 @@ tasks.getByName("dokkaHtml", DokkaTask::class) {
         }
     }
 }
+
+sourceSets { main { kotlin { srcDirs("src/main/kotlin", "build/generated/kotlin") } } }

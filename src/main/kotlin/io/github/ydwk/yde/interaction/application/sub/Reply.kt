@@ -21,6 +21,7 @@ package io.github.ydwk.yde.interaction.application.sub
 import io.github.ydwk.yde.entities.message.MessageFlag
 import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.message.ActionRow
+import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.result.NoResult
 import java.util.concurrent.CompletableFuture
 
@@ -73,7 +74,7 @@ interface Reply {
      * @return The [Void] instance.
      */
     fun trigger(): NoResult {
-        return triggerWithFuture().get()
+        return triggerWithFuture().execute()
     }
 
     /**
@@ -81,5 +82,5 @@ interface Reply {
      *
      * @return The [CompletableFuture] instance.
      */
-    fun triggerWithFuture(): CompletableFuture<NoResult>
+    fun triggerWithFuture(): NoResultExecutableRestAction
 }
