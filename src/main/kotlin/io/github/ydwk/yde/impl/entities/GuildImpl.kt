@@ -36,6 +36,9 @@ import io.github.ydwk.yde.impl.entities.guild.WelcomeScreenImpl
 import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class GuildImpl(override val yde: YDE, override val json: JsonNode, override val idAsLong: Long) :
     Guild {
@@ -171,22 +174,26 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
             return voiceStates
         }
 
-    override val botAsMember: Member
-        get() {
-            return yde.getMemberById(
-                id, yde.bot?.id ?: throw IllegalStateException("Bot id is null"))
+    private suspend fun getBotAsMember(id: String, botId: String): Member =
+        withContext(Dispatchers.IO) {
+            yde.getMemberById(id, botId)
                 ?: yde.restApiManager
-                    .get(EndPoint.GuildEndpoint.GET_MEMBER, id, yde.bot?.id!!)
-                    .executeGetterRestAction() { it ->
+                    .get(EndPoint.GuildEndpoint.GET_MEMBER, id, botId)
+                    .executeGetterRestAction { it ->
                         val jsonBody = it.jsonBody
                         jsonBody?.let {
-                            val member = MemberImpl(yde as YDEImpl, it, this)
+                            val member = MemberImpl(yde as YDEImpl, it, this@GuildImpl)
                             yde.memberCache[id, it["user"]["id"].asText()] = member
                             member
                         }
                             ?: throw IllegalStateException("Response body is null")
                     }
                     .get()
+        }
+
+    override val botAsMember: Member
+        get() = runBlocking {
+            getBotAsMember(id, yde.bot?.id ?: throw IllegalStateException("Bot id is null"))
         }
 
     override fun getRoleById(roleId: Long): Role? {

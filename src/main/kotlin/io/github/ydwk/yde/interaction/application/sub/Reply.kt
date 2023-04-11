@@ -23,7 +23,6 @@ import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.message.ActionRow
 import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.result.NoResult
-import java.util.concurrent.CompletableFuture
 
 /** Represents an object that can be used to reply to an interaction. */
 interface Reply {
@@ -71,16 +70,17 @@ interface Reply {
     /**
      * Triggers the reply.
      *
-     * @return The [Void] instance.
+     * @return The [NoResult] instance.
      */
-    fun trigger(): NoResult {
+    suspend fun trigger(): NoResult {
         return triggerWithFuture().execute()
     }
 
     /**
-     * Replies and return a [CompletableFuture] that will be completed when the reply is sent.
+     * Replies and return a [NoResultExecutableRestAction] that will be completed when the reply is
+     * sent.
      *
-     * @return The [CompletableFuture] instance.
+     * @return The [NoResultExecutableRestAction] instance.
      */
     fun triggerWithFuture(): NoResultExecutableRestAction
 }

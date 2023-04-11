@@ -29,6 +29,7 @@ import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.formatZonedDateTime
+import kotlinx.coroutines.runBlocking
 
 class VoiceStateImpl(
     override val yde: YDE,
@@ -43,13 +44,14 @@ class VoiceStateImpl(
             else backupGuild
 
     override val channel: GuildVoiceChannel?
-        get() =
+        get() = runBlocking {
             yde.requestChannelById(json["channel_id"].asLong())
                 .get()
                 .channelGetter
                 .asGuildChannel()
                 ?.guildChannelGetter
                 ?.asGuildVoiceChannel()
+        }
 
     override val user: User
         get() =

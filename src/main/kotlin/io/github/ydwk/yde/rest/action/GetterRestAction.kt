@@ -18,38 +18,37 @@
  */ 
 package io.github.ydwk.yde.rest.action
 
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
-import java.util.concurrent.Future
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 
 /** An action that can be executed while returning a result such as get, list, etc. */
-class GetterRestAction<T> : CompletionStage<T> by CompletableFuture(), ExtendableAction<T>() {
-    private val completableFuture: CompletableFuture<T> = CompletableFuture()
+class GetterRestAction<T>(private val deferred: CompletableDeferred<T> = CompletableDeferred()) :
+    ExtendableAction<T>(deferred) {
 
     /**
      * Gets the action (executes it) and returns a [T] object.
      *
      * @return a [T] object.
      */
-    fun get(): T {
-        return completableFuture.get()
+    suspend fun get(): T {
+        return deferred.await()
     }
 
     /**
-     * Gets the action (executes it) and returns a [Future] object.
+     * Gets the action (executes it) and returns a [Deferred] object.
      *
-     * @return a [Future] object.
+     * @return a [Deferred] object.
      */
-    fun getAsync(): Future<T> {
-        return completableFuture
+    fun getAsync(): Deferred<T> {
+        return deferred
     }
 
     /**
-     * Executes the action and returns a [CompletableFuture] object.
+     * Executes the action and returns a [CompletableDeferred] object.
      *
-     * @return a [CompletableFuture] object.
+     * @return a [CompletableDeferred] object.
      */
-    fun executeCompletable(): CompletableFuture<T> {
-        return completableFuture
+    fun executeCompletable(): CompletableDeferred<T> {
+        return deferred
     }
 }

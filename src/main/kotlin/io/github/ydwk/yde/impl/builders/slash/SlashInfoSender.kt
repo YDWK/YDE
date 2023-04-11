@@ -21,6 +21,9 @@ package io.github.ydwk.ydwk.impl.builders.slash
 import io.github.ydwk.yde.builders.slash.SlashCommandBuilder
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.rest.EndPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class SlashInfoSender(
@@ -32,13 +35,17 @@ class SlashInfoSender(
     init {
         yde.logger.info("Sending slash commands to Discord")
 
-        val currentGlobalSlashCommandsNameAndId = getCurrentGlobalSlashCommandsNameAndIds()
-        val currentGuildSlashCommandsNameAndId: Map<String, Map<Long, String>> =
+        val currentGlobalSlashCommandsNameAndId = runBlocking {
+            getCurrentGlobalSlashCommandsNameAndIds()
+        }
+
+        val currentGuildSlashCommandsNameAndId: Map<String, Map<Long, String>> = runBlocking {
             if (guildIds.isNotEmpty()) {
                 getCurrentGuildSlashCommandsNameAndIds()
             } else {
                 emptyMap()
             }
+        }
 
         val globalSlashCommands: MutableMap<String, SlashCommandBuilder> = HashMap()
         val guildSlashCommands: MutableMap<String, SlashCommandBuilder> = HashMap()
@@ -171,29 +178,12 @@ class SlashInfoSender(
         }
     }
 
-    private fun getCurrentGlobalSlashCommandsNameAndIds(): Map<Long, String> {
-        return yde.restApiManager
-            .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
-            .executeGetterRestAction() { it ->
-                yde.logger.debug("Getting current global slash commands")
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    return@executeGetterRestAction emptyMap()
-                } else {
-                    return@executeGetterRestAction jsonBody.associate {
-                        it["id"].asLong() to it["name"].asText()
-                    }
-                }
-            }
-            .get()
-    }
-
-    private fun getCurrentGuildSlashCommandsNameAndIds(): Map<String, Map<Long, String>> {
-        return guildIds.associateWith { guildId ->
+    private suspend fun getCurrentGlobalSlashCommandsNameAndIds(): Map<Long, String> {
+        return withContext(Dispatchers.IO) {
             yde.restApiManager
-                .get(
-                    EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS, applicationId, guildId)
+                .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
                 .executeGetterRestAction() { it ->
+                    yde.logger.debug("Getting current global slash commands")
                     val jsonBody = it.jsonBody
                     if (jsonBody == null) {
                         return@executeGetterRestAction emptyMap()
@@ -204,6 +194,29 @@ class SlashInfoSender(
                     }
                 }
                 .get()
+        }
+    }
+
+    private suspend fun getCurrentGuildSlashCommandsNameAndIds(): Map<String, Map<Long, String>> {
+        return withContext(Dispatchers.IO) {
+            guildIds.associateWith { guildId ->
+                yde.restApiManager
+                    .get(
+                        EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS,
+                        applicationId,
+                        guildId)
+                    .executeGetterRestAction() { it ->
+                        val jsonBody = it.jsonBody
+                        if (jsonBody == null) {
+                            return@executeGetterRestAction emptyMap()
+                        } else {
+                            return@executeGetterRestAction jsonBody.associate {
+                                it["id"].asLong() to it["name"].asText()
+                            }
+                        }
+                    }
+                    .get()
+            }
         }
     }
 
