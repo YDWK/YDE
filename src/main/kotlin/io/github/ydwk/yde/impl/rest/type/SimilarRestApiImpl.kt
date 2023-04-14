@@ -31,6 +31,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.function.Function
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.future.asCompletableFuture
 import okhttp3.*
 import org.slf4j.LoggerFactory
 
@@ -90,7 +92,8 @@ open class SimilarRestApiImpl(
     override fun <T : Any> execute(
         function: Function<CompletableFutureManager, T>,
     ): ExtendableAction<T> {
-        val queue = ExtendableAction<T>()
+        val queue = ExtendableAction<T>(CompletableDeferred())
+
         try {
             client
                 .newCall(builder.build())
@@ -192,15 +195,21 @@ open class SimilarRestApiImpl(
     private fun completeReTry(
         queue: ExtendableAction<*>?,
     ) {
-        if (queue is NoResultExecutableRestAction) {
-            executeWithNoResult().thenAccept { queue.complete(null) }
-            logger.debug(HttpResponseCode.OK.getMessage())
-        } else if (queue is GetterRestAction<*>) {
-            execute { queue.complete(null) }
-            logger.debug(HttpResponseCode.OK.getMessage())
-        } else {
-            execute()
-            logger.debug(HttpResponseCode.OK.getMessage())
+        when (queue) {
+            is NoResultExecutableRestAction -> {
+                executeWithNoResult().asCompletableFuture().thenAccept {
+                    queue.executeCompletable()
+                }
+                logger.debug(HttpResponseCode.OK.getMessage())
+            }
+            is GetterRestAction<*> -> {
+                execute { queue.executeCompletable() }
+                logger.debug(HttpResponseCode.OK.getMessage())
+            }
+            else -> {
+                execute()
+                logger.debug(HttpResponseCode.OK.getMessage())
+            }
         }
     }
 

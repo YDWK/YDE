@@ -18,39 +18,27 @@
  */ 
 package io.github.ydwk.yde.rest.action
 
-import io.github.ydwk.yde.rest.result.NoResult
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
-import java.util.concurrent.Future
+import kotlinx.coroutines.*
 
-class RestExecutableRestAction<T> :
-    CompletionStage<T> by CompletableFuture(), ExtendableAction<T>() {
-    private val completableFuture: CompletableFuture<T> = CompletableFuture()
+class RestExecutableRestAction<T>(
+    private val deferred: CompletableDeferred<T> = CompletableDeferred()
+) : ExtendableAction<T>(deferred) {
 
     /**
-     * Executes the action and returns a [CompletableFuture] object.
+     * Executes the action and returns a [Deferred] object.
      *
-     * @return a [CompletableFuture] object.
+     * @return a [Deferred] object.
      */
-    fun executeCompletable(): CompletableFuture<T> {
-        return completableFuture
+    fun executeCompletable(): CompletableDeferred<T> {
+        return deferred
     }
 
     /**
      * Executes the action and returns a [T] object.
      *
-     * @return a [NoResult] object.
+     * @return a [T] object.
      */
-    fun execute(): T {
-        return completableFuture.get()
-    }
-
-    /**
-     * Executes the action and returns a [Future] object.
-     *
-     * @return a [Future] object.
-     */
-    fun executeAsync(): Future<T> {
-        return completableFuture
+    suspend fun execute(): T {
+        return deferred.await()
     }
 }

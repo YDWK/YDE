@@ -21,6 +21,7 @@ package io.github.ydwk.yde.impl.builders.message
 import io.github.ydwk.yde.builders.message.MessageCommandBuilder
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.rest.EndPoint
+import kotlinx.coroutines.*
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MessageCommandSender(
@@ -33,13 +34,17 @@ class MessageCommandSender(
     init {
         yde.logger.info("Sending Message Commands to Discord")
 
-        val currentGlobalMessageCommandsNameAndId = getCurrentGlobalMessageCommandsNameAndIds()
-        val currentGuildMessageCommandsNameAndId: Map<String, Map<Long, String>> =
+        val currentGlobalMessageCommandsNameAndId: Map<Long, String> = runBlocking {
+            getCurrentGlobalMessageCommandsNameAndIds()
+        }
+
+        val currentGuildMessageCommandsNameAndId: Map<String, Map<Long, String>> = runBlocking {
             if (guildIds.isNotEmpty()) {
                 getCurrentGuildMessageCommandsNameAndIds()
             } else {
                 emptyMap()
             }
+        }
 
         val globalMessageCommands: MutableMap<String, MessageCommandBuilder> = HashMap()
         val guildMessageCommands: MutableMap<String, MessageCommandBuilder> = HashMap()
@@ -172,28 +177,11 @@ class MessageCommandSender(
         }
     }
 
-    private fun getCurrentGlobalMessageCommandsNameAndIds(): Map<Long, String> {
-        return yde.restApiManager
-            .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
-            .executeGetterRestAction { it ->
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    return@executeGetterRestAction emptyMap()
-                } else {
-                    return@executeGetterRestAction jsonBody.associate {
-                        it["id"].asLong() to it["name"].asText()
-                    }
-                }
-            }
-            .get()
-    }
-
-    private fun getCurrentGuildMessageCommandsNameAndIds(): Map<String, Map<Long, String>> {
-        return guildIds.associateWith { guildId ->
+    private suspend fun getCurrentGlobalMessageCommandsNameAndIds(): Map<Long, String> {
+        return withContext(Dispatchers.IO) {
             yde.restApiManager
-                .get(
-                    EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS, applicationId, guildId)
-                .executeGetterRestAction() { it ->
+                .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
+                .executeGetterRestAction { it ->
                     val jsonBody = it.jsonBody
                     if (jsonBody == null) {
                         return@executeGetterRestAction emptyMap()
@@ -204,6 +192,29 @@ class MessageCommandSender(
                     }
                 }
                 .get()
+        }
+    }
+
+    private suspend fun getCurrentGuildMessageCommandsNameAndIds(): Map<String, Map<Long, String>> {
+        return withContext(Dispatchers.IO) {
+            guildIds.associateWith { guildId ->
+                yde.restApiManager
+                    .get(
+                        EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS,
+                        applicationId,
+                        guildId)
+                    .executeGetterRestAction() { it ->
+                        val jsonBody = it.jsonBody
+                        if (jsonBody == null) {
+                            return@executeGetterRestAction emptyMap()
+                        } else {
+                            return@executeGetterRestAction jsonBody.associate {
+                                it["id"].asLong() to it["name"].asText()
+                            }
+                        }
+                    }
+                    .get()
+            }
         }
     }
 

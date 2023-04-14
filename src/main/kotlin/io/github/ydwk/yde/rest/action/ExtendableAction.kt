@@ -18,11 +18,11 @@
  */ 
 package io.github.ydwk.yde.rest.action
 
-import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 
-open class ExtendableAction<T> {
-    private val completableFuture: CompletableFuture<T> = CompletableFuture()
-
+open class ExtendableAction<T>(private val deferred: CompletableDeferred<T>) :
+    Deferred<T> by deferred {
     /**
      * Triggers the completion of the action with an exception.
      *
@@ -31,7 +31,7 @@ open class ExtendableAction<T> {
      *   completed.
      */
     fun completeExceptionally(throwable: Throwable): Boolean {
-        return completableFuture.completeExceptionally(throwable)
+        return deferred.completeExceptionally(throwable)
     }
 
     /**
@@ -40,7 +40,7 @@ open class ExtendableAction<T> {
      * @return `true` if the action was completed successfully, `false` if the action was already
      *   completed.
      */
-    open fun complete(result: T?): Boolean {
-        return completableFuture.complete(result)
+    fun complete(result: T): Boolean {
+        return deferred.complete(result)
     }
 }

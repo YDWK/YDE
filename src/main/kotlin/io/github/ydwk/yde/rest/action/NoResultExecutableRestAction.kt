@@ -19,49 +19,29 @@
 package io.github.ydwk.yde.rest.action
 
 import io.github.ydwk.yde.rest.result.NoResult
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletionStage
-import java.util.concurrent.Future
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
 
 /** An action that can be executed while not returning a result such as ban, kick, etc. */
-class NoResultExecutableRestAction :
-    CompletionStage<NoResult> by CompletableFuture(), ExtendableAction<NoResult>() {
-    private val completableFuture: CompletableFuture<NoResult> = CompletableFuture()
+class NoResultExecutableRestAction(
+    private val deferred: CompletableDeferred<NoResult> = CompletableDeferred()
+) : ExtendableAction<NoResult>(deferred) {
 
     /**
-     * Executes the action and returns a [CompletableFuture] object.
+     * Executes the action and returns a [Deferred] object.
      *
-     * @return a [CompletableFuture] object.
+     * @return a [Deferred] object.
      */
-    fun executeCompletable(): CompletableFuture<NoResult> {
-        return completableFuture
+    fun executeCompletable(): CompletableDeferred<NoResult> {
+        return deferred
     }
 
     /**
      * Executes the action and returns a [NoResult] object.
      *
-     * @return a [NoResult] object.
+     * @return [NoResult] object.
      */
-    fun execute(): NoResult {
-        return completableFuture.get()
-    }
-
-    /**
-     * Executes the action and returns a [Future] object.
-     *
-     * @return a [Future] object.
-     */
-    fun executeAsync(): Future<NoResult> {
-        return completableFuture
-    }
-
-    /**
-     * Triggers the completion of the action.
-     *
-     * @return `true` if the action was completed successfully, `false` if the action was already
-     *   completed.
-     */
-    override fun complete(result: NoResult?): Boolean {
-        return completableFuture.complete(result)
+    suspend fun execute(): NoResult {
+        return deferred.await()
     }
 }

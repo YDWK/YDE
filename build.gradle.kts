@@ -64,6 +64,10 @@ dependencies {
     // https
     api("com.squareup.okhttp3:okhttp:" + properties["okhttp3Version"])
 
+    // coroutines
+    implementation(
+        "org.jetbrains.kotlinx:kotlinx-coroutines-core:" + properties["coroutinesVersion"])
+
     testImplementation(kotlin("test"))
 }
 

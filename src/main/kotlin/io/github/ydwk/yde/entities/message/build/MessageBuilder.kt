@@ -133,7 +133,7 @@ class MessageBuilder {
      * @param channel The channel to send the message to.
      * @return The [Message] that was sent.
      */
-    fun send(sendeadble: SendAble): RestExecutableRestAction<Message> {
+    suspend fun send(sendeadble: SendAble): RestExecutableRestAction<Message> {
         return when (sendeadble) {
             is TextChannel -> {
                 sendToTextChannel(sendeadble)
@@ -179,7 +179,7 @@ class MessageBuilder {
      * @param member The member to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToMember(member: Member): RestExecutableRestAction<Message> {
+    private suspend fun sendToMember(member: Member): RestExecutableRestAction<Message> {
         return send(member.user as SendAble)
     }
 
@@ -189,9 +189,8 @@ class MessageBuilder {
      * @param user The user to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToUser(user: User): RestExecutableRestAction<Message> {
-        return user.createDmChannel.thenCompose { channel -> send(channel) }
-            as RestExecutableRestAction<Message>
+    private suspend fun sendToUser(user: User): RestExecutableRestAction<Message> {
+        return user.createDmChannel.execute().send()
     }
 
     private fun sendMessageToChannelBody(
