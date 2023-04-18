@@ -65,9 +65,12 @@ dependencies {
     api("com.squareup.okhttp3:okhttp:" + properties["okhttp3Version"])
 
     // coroutines
-    implementation(
-        "org.jetbrains.kotlinx:kotlinx-coroutines-core:" + properties["coroutinesVersion"])
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:" + properties["coroutinesVersion"])
 
+    // guava
+    api("com.google.guava:guava:" + properties["guavaVersion"])
+
+    // test
     testImplementation(kotlin("test"))
 }
 

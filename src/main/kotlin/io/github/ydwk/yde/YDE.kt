@@ -39,6 +39,8 @@ import io.github.ydwk.yde.rest.action.GetterRestAction
 import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.rest.methods.RestAPIMethodGetters
 import io.github.ydwk.yde.util.Incubating
+import io.github.ydwk.yde.util.ThreadFactory
+import java.time.Duration
 import java.util.concurrent.CompletableFuture
 
 interface YDE {
@@ -70,6 +72,13 @@ interface YDE {
      * @return The rest api methods.
      */
     val restAPIMethodGetters: RestAPIMethodGetters
+
+    /**
+     * The thread factory used by the bot.
+     *
+     * @return The thread factory.
+     */
+    val threadFactory: ThreadFactory
 
     /**
      * Creates a dm channel.
@@ -423,6 +432,61 @@ interface YDE {
      * @return The [EmbedBuilder] object.
      */
     val embedBuilder: EmbedBuilder
+
+    /**
+     * Triggers a thread to clear a certain cache type after a certain amount of time
+     *
+     * @param cacheId The id of the cache
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear a certain cache type after a certain amount of time
+     *
+     * @param cacheId The id of the cache
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Long, repeat: Boolean = true) =
+        triggerCacheTypeClear(cacheId, Duration.ofMillis(duration), repeat)
+
+    /**
+     * Triggers a thread to clear a list of cache types after a certain amount of time
+     *
+     * @param cacheIds The ids of the caches
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear a list of cache types after a certain amount of time
+     *
+     * @param cacheIds The ids of the caches
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Long, repeat: Boolean = true) =
+        triggerCacheTypeClear(cacheIds, Duration.ofMillis(duration), repeat)
+
+    /**
+    * Triggers a thread to clear the entire cache after a certain amount of time
+     *
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheClear(duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear the entire cache after a certain amount of time
+     *
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    fun triggerCacheClear(duration: Long, repeat: Boolean = true) =
+        triggerCacheClear(Duration.ofMillis(duration), repeat)
 
     /**
      * Overrides the custom to string method.

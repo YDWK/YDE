@@ -18,19 +18,25 @@
  */ 
 package io.github.ydwk.yde.util
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-object ThreadFactory {
-    private fun createThread(name: String, daemon: Boolean, block: Runnable): Thread {
-        val thread = Thread(block)
-        thread.name = name
-        thread.isDaemon = daemon
-        return thread
+class ThreadFactory(private val threadBuild: ThreadFactoryBuilder) {
+    fun createThread(name: String, daemon: Boolean, block: Runnable): Thread {
+        return threadBuild.setNameFormat("yde-$name-%d").setDaemon(daemon).build().newThread(block)
     }
 
-    private fun getThreadByName(name: String): Thread? {
-        return Thread.getAllStackTraces().keys.firstOrNull { it.name == name }
+    fun createThread(name: String, daemon: Boolean, block: () -> Unit): Thread {
+        return createThread(name, daemon, Runnable(block))
+    }
+
+    fun createThread(name: String, block: () -> Unit): Thread {
+        return createThread(name, true, Runnable(block))
+    }
+
+    fun getThreadByName(name: String): Thread? {
+        return Thread.getAllStackTraces().keys.find { it.name == name }
     }
 
     fun createThreadExecutor(name: String): ExecutorService {

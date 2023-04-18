@@ -21,6 +21,7 @@ package io.github.ydwk.yde.impl
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import io.github.ydwk.yde.YDE
 import io.github.ydwk.yde.builders.message.IMessageCommandBuilder
 import io.github.ydwk.yde.builders.slash.ISlashCommandBuilder
@@ -44,6 +45,8 @@ import io.github.ydwk.yde.rest.RestApiManager
 import io.github.ydwk.yde.rest.methods.RestAPIMethodGetterImpl
 import io.github.ydwk.yde.rest.methods.RestAPIMethodGetters
 import io.github.ydwk.yde.util.EntityToStringBuilder
+import io.github.ydwk.yde.util.ThreadFactory
+import java.time.Duration
 import okhttp3.OkHttpClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -59,8 +62,8 @@ open class YDEImpl(
     val logger: Logger = LoggerFactory.getLogger(YDEImpl::class.java)
 
     private val allowedCache: MutableSet<CacheIds> = mutableSetOf()
-    val cache: Cache = PerpetualCache(allowedCache)
-    val memberCache: MemberCache = MemberCacheImpl(allowedCache)
+    val cache: Cache = PerpetualCache(allowedCache, this)
+    val memberCache: MemberCache = MemberCacheImpl(allowedCache, this)
 
     override val objectNode: ObjectNode
         get() = JsonNodeFactory.instance.objectNode()
@@ -130,6 +133,22 @@ open class YDEImpl(
     override val embedBuilder: EmbedBuilder
         get() = EmbedBuilderImpl(this)
 
+    override fun triggerCacheTypeClear(cacheId: CacheIds, duration: Duration, repeat: Boolean) {
+        cache.triggerCacheTypeClear(cacheId, duration, repeat)
+    }
+
+    override fun triggerCacheTypeClear(
+        cacheIds: List<CacheIds>,
+        duration: Duration,
+        repeat: Boolean
+    ) {
+        cache.triggerCacheTypesClear(cacheIds, duration, repeat)
+    }
+
+    override fun triggerCacheClear(duration: Duration, repeat: Boolean) {
+        cache.triggerCacheClear(duration, repeat)
+    }
+
     override fun setGuildIds(vararg guildIds: String) {
         guildIds.forEach { this.guildIdList.add(it) }
     }
@@ -153,6 +172,10 @@ open class YDEImpl(
             } // wait for bot to be set
             return field
         }
+
+    private val threadBuilder = ThreadFactoryBuilder()
+
+    override val threadFactory: ThreadFactory = ThreadFactory(threadBuilder)
 
     override fun toString(): String {
         return EntityToStringBuilder(this, this).add("applicationId", applicationId).toString()
