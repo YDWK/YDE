@@ -17,7 +17,7 @@ body:
       options:
         - label: I have checked for similar issues on the Issue-tracker.
           required: true
-        - label: I have updated to the [latest YDWK version](https://search.maven.org/artifact/io.github.realyusufismail/yde)
+        - label: I have updated to the [latest YDE version](https://search.maven.org/artifact/io.github.realyusufismail/yde)
           required: true
         - label: I have checked the branches or the maintainers' PRs for upcoming features.
           required: true

@@ -89,7 +89,7 @@ open class YDEImpl(
     }
 
     override fun getUserById(id: Long): User? {
-        return cache[id.toString(), CacheIds.USER] as User?
+        return cache[id.toString(), CacheIds.USER].let { it as User? }
     }
 
     override fun getUsers(): List<User> {
@@ -97,7 +97,7 @@ open class YDEImpl(
     }
 
     override fun getGuildById(id: String): Guild? {
-        return cache[id, CacheIds.GUILD] as Guild?
+        return cache[id, CacheIds.GUILD].let { it as Guild? }
     }
 
     override fun getGuilds(): List<Guild> {
@@ -105,7 +105,7 @@ open class YDEImpl(
     }
 
     override fun getChannelById(id: Long): Channel? {
-        return cache[id.toString(), CacheIds.CHANNEL] as Channel?
+        return cache[id.toString(), CacheIds.CHANNEL].let { it as Channel? }
     }
 
     override fun getChannels(): List<Channel> {

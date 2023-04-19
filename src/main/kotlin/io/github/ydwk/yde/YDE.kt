@@ -360,48 +360,110 @@ interface YDE {
     fun setGuildIds(guildIds: MutableList<String>) = setGuildIds(*guildIds.toTypedArray())
 
     /**
-     * Sets the allowed cache types.
+     * Sets the allowed cache ids.
      *
-     * @param cacheTypes The cache types to be allowed.
+     * @param cacheIds The cache ics to be allowed.
      */
-    fun setAllowedCache(vararg cacheTypes: CacheIds)
+    fun setAllowedCache(vararg cacheIds: CacheIds)
 
     /**
-     * Sets the allowed cache types.
+     * Sets the allowed cache ids.
      *
-     * @param cacheTypes The cache types to be allowed.
+     * @param cacheIds The cache ids to be allowed.
      */
-    fun setAllowedCache(cacheTypes: MutableList<CacheIds>) =
-        setAllowedCache(*cacheTypes.toTypedArray())
+    fun setAllowedCache(cacheIds: MutableList<CacheIds>) =
+        setAllowedCache(*cacheIds.toTypedArray())
 
     /**
-     * Sets the disallowed cache types.
+     * Sets the disallowed cache ids.
      *
-     * @param cacheTypes The cache types to be disallowed.
+     * @param cacheIds The cache ids to be disallowed.
      */
-    fun setDisallowedCache(vararg cacheTypes: CacheIds)
+    fun setDisallowedCache(vararg cacheIds: CacheIds)
 
     /**
-     * Sets the disallowed cache types.
+     * Sets the disallowed cache ids.
      *
-     * @param cacheTypes The cache types to be disallowed.
+     * @param cacheIds The cache ids to be disallowed.
      */
-    fun setDisallowedCache(cacheTypes: MutableList<CacheIds>) =
-        setDisallowedCache(*cacheTypes.toTypedArray())
+    fun setDisallowedCache(cacheIds: MutableList<CacheIds>) =
+        setDisallowedCache(*cacheIds.toTypedArray())
+
+    
+    /**
+     * Triggers a thread to clear a certain cache type after a certain amount of time
+     *
+     * @param cacheId The id of the cache
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear a certain cache type after a certain amount of time
+     *
+     * @param cacheId The id of the cache
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Long, repeat: Boolean = true) =
+        triggerCacheTypeClear(cacheId, Duration.ofMillis(duration), repeat)
+
+    /**
+     * Triggers a thread to clear a list of cache types after a certain amount of time
+     *
+     * @param cacheIds The ids of the caches
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear a list of cache types after a certain amount of time
+     *
+     * @param cacheIds The ids of the caches
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Long, repeat: Boolean = true) =
+        triggerCacheTypeClear(cacheIds, Duration.ofMillis(duration), repeat)
+
+    /**
+     * Triggers a thread to clear the entire cache after a certain amount of time
+     *
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheClear(duration: Duration, repeat: Boolean = true)
+
+    /**
+     * Triggers a thread to clear the entire cache after a certain amount of time
+     *
+     * @param duration The duration to wait before clearing the cache
+     * @param repeat whether to repeat the clearing of the cache
+     */
+    @Incubating
+    fun triggerCacheClear(duration: Long, repeat: Boolean = true) =
+        triggerCacheClear(Duration.ofMillis(duration), repeat)
 
     /**
      * The github repository url.
      *
      * @return The url.
      */
-    @get:Incubating val githubRepositoryUrl: String
+    val githubRepositoryUrl: String
 
     /**
      * The wrapper version.
      *
      * @return The version.
      */
-    @get:Incubating val wrapperVersion: String
+    val wrapperVersion: String
 
     /**
      * The properties of the bot.
@@ -415,78 +477,36 @@ interface YDE {
      *
      * @return The [EntityBuilder] object.
      */
-    @get:Incubating val entityBuilder: EntityBuilder
+     val entityBuilder: EntityBuilder
 
-    /** Adds or removes slash commands */
+    /**
+     * Adds or removes slash commands.
+     * 
+     * @return The [ISlashCommandBuilder] object.
+     */
     val slashBuilder: ISlashCommandBuilder
 
-    /** Adds or removes user commands. */
+    /**
+     * Adds or removes user commands.
+     * 
+     * @return The [IUserCommandBuilder] object.
+     */
     val userCommandBuilder: IUserCommandBuilder
 
-    /** Adds or removes message commands. */
+    /**
+     * Adds or removes message commands.
+     * 
+     * @return The [IMessageCommandBuilder] object.
+     */
     val messageCommandBuilder: IMessageCommandBuilder
 
+    
     /**
      * Used to build embeds.
      *
      * @return The [EmbedBuilder] object.
      */
-    val embedBuilder: EmbedBuilder
-
-    /**
-     * Triggers a thread to clear a certain cache type after a certain amount of time
-     *
-     * @param cacheId The id of the cache
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Duration, repeat: Boolean = true)
-
-    /**
-     * Triggers a thread to clear a certain cache type after a certain amount of time
-     *
-     * @param cacheId The id of the cache
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheTypeClear(cacheId: CacheIds, duration: Long, repeat: Boolean = true) =
-        triggerCacheTypeClear(cacheId, Duration.ofMillis(duration), repeat)
-
-    /**
-     * Triggers a thread to clear a list of cache types after a certain amount of time
-     *
-     * @param cacheIds The ids of the caches
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Duration, repeat: Boolean = true)
-
-    /**
-     * Triggers a thread to clear a list of cache types after a certain amount of time
-     *
-     * @param cacheIds The ids of the caches
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheTypeClear(cacheIds: List<CacheIds>, duration: Long, repeat: Boolean = true) =
-        triggerCacheTypeClear(cacheIds, Duration.ofMillis(duration), repeat)
-
-    /**
-    * Triggers a thread to clear the entire cache after a certain amount of time
-     *
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheClear(duration: Duration, repeat: Boolean = true)
-
-    /**
-     * Triggers a thread to clear the entire cache after a certain amount of time
-     *
-     * @param duration The duration to wait before clearing the cache
-     * @param repeat whether to repeat the clearing of the cache
-     */
-    fun triggerCacheClear(duration: Long, repeat: Boolean = true) =
-        triggerCacheClear(Duration.ofMillis(duration), repeat)
+    val embedBuilder: EmbedBuilde
 
     /**
      * Overrides the custom to string method.

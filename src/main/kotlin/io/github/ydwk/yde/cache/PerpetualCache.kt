@@ -111,7 +111,7 @@ open class PerpetualCache(private val allowedCache: Set<CacheIds>, private val y
             logger.debug(
                 "Triggering cache clear of type $cacheId for duration $duration and the repeat status is $repeat")
             yde.threadFactory
-                .createThread("CacheClearerFor${cacheId.getValue()}") {
+                .createThreadExecutor("CacheClearerFor${cacheId.getValue()}") {
                     if (repeat) {
                         Timer()
                             .schedule(
@@ -133,15 +133,42 @@ open class PerpetualCache(private val allowedCache: Set<CacheIds>, private val y
                                 duration.toMillis())
                     }
                 }
-                .start()
+                .get()
         }
     }
 
-    override fun triggerCacheTypesClear(cacheIds: List<CacheIds>, duration: Duration, repeat: Boolean) {
+    override fun triggerCacheTypesClear(
+        cacheIds: List<CacheIds>,
+        duration: Duration,
+        repeat: Boolean
+    ) {
         cacheIds.forEach { triggerCacheTypeClear(it, duration, repeat) }
     }
 
     override fun triggerCacheClear(duration: Duration, repeat: Boolean) {
-        triggerCacheTypesClear(allowedCache.toList(), duration, repeat)
+        yde.threadFactory
+            .createThreadExecutor("CacheClearerForAll") {
+                if (repeat) {
+                    Timer()
+                        .schedule(
+                            object : TimerTask() {
+                                override fun run() {
+                                    clear()
+                                }
+                            },
+                            duration.toMillis(),
+                            duration.toMillis())
+                } else {
+                    Timer()
+                        .schedule(
+                            object : TimerTask() {
+                                override fun run() {
+                                    clear()
+                                }
+                            },
+                            duration.toMillis())
+                }
+            }
+            .get()
     }
 }

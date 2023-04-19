@@ -19,36 +19,45 @@
 package io.github.ydwk.yde.util
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 class ThreadFactory(private val threadBuild: ThreadFactoryBuilder) {
-    fun createThread(name: String, daemon: Boolean, block: Runnable): Thread {
+    private val executor = Executors.newCachedThreadPool()
+
+    private fun createThread(name: String, daemon: Boolean, block: Runnable): Thread {
         return threadBuild.setNameFormat("yde-$name-%d").setDaemon(daemon).build().newThread(block)
     }
 
-    fun createThread(name: String, daemon: Boolean, block: () -> Unit): Thread {
+    private fun createThread(name: String, daemon: Boolean, block: () -> Unit): Thread {
         return createThread(name, daemon, Runnable(block))
     }
 
-    fun createThread(name: String, block: () -> Unit): Thread {
+    private fun createThread(name: String, block: () -> Unit): Thread {
         return createThread(name, true, Runnable(block))
+    }
+
+    fun createThreadExecutor(name: String, daemon: Boolean, block: Runnable): Future<*> {
+        return executor.submit { createThread(name, daemon, block) }
+    }
+
+    fun createThreadExecutor(name: String, daemon: Boolean, block: () -> Unit): Future<*> {
+        return executor.submit { createThread(name, daemon, block) }
+    }
+
+    fun createThreadExecutor(name: String, block: () -> Unit): Future<*> {
+        return executor.submit { createThread(name, block) }
+    }
+
+    fun createThreadExecutor(name: String, block: Runnable): Future<*> {
+        return executor.submit { createThread(name, true, block) }
     }
 
     fun getThreadByName(name: String): Thread? {
         return Thread.getAllStackTraces().keys.find { it.name == name }
     }
 
-    fun createThreadExecutor(name: String): ExecutorService {
-        return Executors.newSingleThreadExecutor { r -> createThread(name, true, r) }
-    }
-
-    fun getThreadExecutorByName(threadName: String): ExecutorService? {
-        val thread = getThreadByName(threadName)
-        return if (thread != null) {
-            Executors.newSingleThreadExecutor { thread }
-        } else {
-            null
-        }
+    fun shutdwonAllThreadExecutor() {
+        executor.shutdownNow()
     }
 }
