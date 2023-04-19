@@ -371,8 +371,7 @@ interface YDE {
      *
      * @param cacheIds The cache ids to be allowed.
      */
-    fun setAllowedCache(cacheIds: MutableList<CacheIds>) =
-        setAllowedCache(*cacheIds.toTypedArray())
+    fun setAllowedCache(cacheIds: MutableList<CacheIds>) = setAllowedCache(*cacheIds.toTypedArray())
 
     /**
      * Sets the disallowed cache ids.
@@ -389,7 +388,6 @@ interface YDE {
     fun setDisallowedCache(cacheIds: MutableList<CacheIds>) =
         setDisallowedCache(*cacheIds.toTypedArray())
 
-    
     /**
      * Triggers a thread to clear a certain cache type after a certain amount of time
      *
@@ -438,8 +436,7 @@ interface YDE {
      * @param duration The duration to wait before clearing the cache
      * @param repeat whether to repeat the clearing of the cache
      */
-    @Incubating
-    fun triggerCacheClear(duration: Duration, repeat: Boolean = true)
+    @Incubating fun triggerCacheClear(duration: Duration, repeat: Boolean = true)
 
     /**
      * Triggers a thread to clear the entire cache after a certain amount of time
@@ -477,36 +474,35 @@ interface YDE {
      *
      * @return The [EntityBuilder] object.
      */
-     val entityBuilder: EntityBuilder
+    val entityBuilder: EntityBuilder
 
     /**
      * Adds or removes slash commands.
-     * 
+     *
      * @return The [ISlashCommandBuilder] object.
      */
     val slashBuilder: ISlashCommandBuilder
 
     /**
      * Adds or removes user commands.
-     * 
+     *
      * @return The [IUserCommandBuilder] object.
      */
     val userCommandBuilder: IUserCommandBuilder
 
     /**
      * Adds or removes message commands.
-     * 
+     *
      * @return The [IMessageCommandBuilder] object.
      */
     val messageCommandBuilder: IMessageCommandBuilder
 
-    
     /**
      * Used to build embeds.
      *
      * @return The [EmbedBuilder] object.
      */
-    val embedBuilder: EmbedBuilde
+    val embedBuilder: EmbedBuilder
 
     /**
      * Overrides the custom to string method.
