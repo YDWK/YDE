@@ -20,10 +20,12 @@ package io.github.ydwk.yde.cache
 
 import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.guild.Member
+import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 
 /** Discord's Member do not have a unique ID, so we need to use a combination of the user id */
-class MemberCacheImpl(allowedCache: Set<CacheIds>) : MemberCache, PerpetualCache(allowedCache) {
+class MemberCacheImpl(allowedCache: Set<CacheIds>, yde: YDEImpl) :
+    MemberCache, PerpetualCache(allowedCache, yde) {
     override fun set(guildId: String, userId: String, value: Member) {
         super.set(guildId + userId, value, CacheIds.MEMBER)
     }
@@ -54,6 +56,6 @@ class MemberCacheImpl(allowedCache: Set<CacheIds>) : MemberCache, PerpetualCache
     }
 
     override fun values(): List<Member> {
-        return super.values(CacheIds.MEMBER) as List<Member>
+        return super.values(CacheIds.MEMBER).map { it as Member }
     }
 }

@@ -18,31 +18,46 @@
  */ 
 package io.github.ydwk.yde.util
 
-import java.util.concurrent.ExecutorService
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
-object ThreadFactory {
+class ThreadFactory(private val threadBuild: ThreadFactoryBuilder) {
+    private val executor = Executors.newCachedThreadPool()
+
     private fun createThread(name: String, daemon: Boolean, block: Runnable): Thread {
-        val thread = Thread(block)
-        thread.name = name
-        thread.isDaemon = daemon
-        return thread
+        return threadBuild.setNameFormat("yde-$name-%d").setDaemon(daemon).build().newThread(block)
     }
 
-    private fun getThreadByName(name: String): Thread? {
-        return Thread.getAllStackTraces().keys.firstOrNull { it.name == name }
+    private fun createThread(name: String, daemon: Boolean, block: () -> Unit): Thread {
+        return createThread(name, daemon, Runnable(block))
     }
 
-    fun createThreadExecutor(name: String): ExecutorService {
-        return Executors.newSingleThreadExecutor { r -> createThread(name, true, r) }
+    private fun createThread(name: String, block: () -> Unit): Thread {
+        return createThread(name, true, Runnable(block))
     }
 
-    fun getThreadExecutorByName(threadName: String): ExecutorService? {
-        val thread = getThreadByName(threadName)
-        return if (thread != null) {
-            Executors.newSingleThreadExecutor { thread }
-        } else {
-            null
-        }
+    fun createThreadExecutor(name: String, daemon: Boolean, block: Runnable): Future<*> {
+        return executor.submit { createThread(name, daemon, block) }
+    }
+
+    fun createThreadExecutor(name: String, daemon: Boolean, block: () -> Unit): Future<*> {
+        return executor.submit { createThread(name, daemon, block) }
+    }
+
+    fun createThreadExecutor(name: String, block: () -> Unit): Future<*> {
+        return executor.submit { createThread(name, block) }
+    }
+
+    fun createThreadExecutor(name: String, block: Runnable): Future<*> {
+        return executor.submit { createThread(name, true, block) }
+    }
+
+    fun getThreadByName(name: String): Thread? {
+        return Thread.getAllStackTraces().keys.find { it.name == name }
+    }
+
+    fun shutdwonAllThreadExecutor() {
+        executor.shutdownNow()
     }
 }
