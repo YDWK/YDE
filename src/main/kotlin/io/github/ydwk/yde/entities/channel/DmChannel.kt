@@ -19,8 +19,8 @@
 package io.github.ydwk.yde.entities.channel
 
 import io.github.ydwk.yde.entities.User
-import io.github.ydwk.yde.rest.action.GetterRestAction
 import io.github.ydwk.yde.util.GetterSnowFlake
+import kotlinx.coroutines.CompletableDeferred
 
 interface DmChannel : TextChannel {
     /**
@@ -42,6 +42,6 @@ interface DmChannel : TextChannel {
      *
      * @return the recipient of the dm.
      */
-    val retrieveRecipient: GetterRestAction<User>
+    val retrieveRecipient: CompletableDeferred<User>
         get() = yde.restAPIMethodGetters.getUserRestAPIMethods().requestUser(idAsLong)
 }

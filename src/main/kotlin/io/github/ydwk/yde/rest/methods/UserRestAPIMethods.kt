@@ -20,8 +20,7 @@ package io.github.ydwk.yde.rest.methods
 
 import io.github.ydwk.yde.entities.User
 import io.github.ydwk.yde.entities.channel.DmChannel
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import kotlinx.coroutines.CompletableDeferred
 
 interface UserRestAPIMethods {
     /**
@@ -30,7 +29,7 @@ interface UserRestAPIMethods {
      * @param id the id of the user.
      * @return a future containing the direct message channel.
      */
-    fun createDm(id: Long): RestExecutableRestAction<DmChannel>
+    fun createDm(id: Long): CompletableDeferred<DmChannel>
 
     /**
      * Request a user by its id.
@@ -38,12 +37,12 @@ interface UserRestAPIMethods {
      * @param id the id of the user.
      * @return a future containing the user.
      */
-    fun requestUser(id: Long): GetterRestAction<User>
+    fun requestUser(id: Long): CompletableDeferred<User>
 
     /**
      * Request to get a list of all the users that are visible to the bot.
      *
      * @return a future containing the list of users.
      */
-    fun requestUsers(): GetterRestAction<List<User>>
+    fun requestUsers(): CompletableDeferred<List<User>>
 }

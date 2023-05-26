@@ -31,11 +31,11 @@ import io.github.ydwk.yde.impl.entities.GuildImpl
 import io.github.ydwk.yde.impl.entities.guild.BanImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.methods.GuildRestAPIMethods
+import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.GetterSnowFlake
 import kotlin.time.Duration
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
@@ -44,7 +44,7 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
         userId: Long,
         deleteMessageDuration: Duration,
         reason: String?
-    ): NoResultExecutableRestAction {
+    ): CompletableDeferred<NoResult> {
         return yde.restApiManager
             .put(
                 yde.objectMapper
@@ -63,7 +63,7 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
         guildId: Long,
         userId: Long,
         reason: String?
-    ): NoResultExecutableRestAction {
+    ): CompletableDeferred<NoResult> {
         return yde.restApiManager
             .delete(EndPoint.GuildEndpoint.BAN, guildId.toString(), userId.toString())
             .addReason(reason)
@@ -74,17 +74,17 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
         guildId: Long,
         userId: Long,
         reason: String?
-    ): NoResultExecutableRestAction {
+    ): CompletableDeferred<NoResult> {
         return yde.restApiManager
             .delete(EndPoint.GuildEndpoint.KICK, guildId.toString(), userId.toString())
             .addReason(reason)
             .executeWithNoResult()
     }
 
-    override fun requestedBanList(guildId: Long): GetterRestAction<List<Ban>> {
+    override fun requestedBanList(guildId: Long): CompletableDeferred<List<Ban>> {
         return yde.restApiManager
             .get(EndPoint.GuildEndpoint.GET_BANS, guildId.toString())
-            .executeGetterRestAction() { it ->
+            .execute { it ->
                 val jsonBody = it.jsonBody
                 jsonBody?.map { BanImpl(yde, it) }
                     ?: throw IllegalStateException("Response body is null")
@@ -97,7 +97,7 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
         limit: Int,
         before: GetterSnowFlake?,
         actionType: AuditLogType?
-    ): GetterRestAction<AuditLog> {
+    ): CompletableDeferred<AuditLog> {
         val rest = yde.restApiManager
 
         if (userId != null) {
@@ -115,7 +115,7 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
         return rest
             .addQueryParameter("limit", limit.toString())
             .get(EndPoint.GuildEndpoint.GET_AUDIT_LOGS, guildId.toString())
-            .executeGetterRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")
@@ -125,11 +125,11 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
             }
     }
 
-    override fun requestedMembers(guild: Guild, limit: Int?): GetterRestAction<List<Member>> {
+    override fun requestedMembers(guild: Guild, limit: Int?): CompletableDeferred<List<Member>> {
         return yde.restApiManager
             .addQueryParameter("limit", limit.toString())
             .get(EndPoint.GuildEndpoint.GET_MEMBERS, guild.id.toString())
-            .executeGetterRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 val members: ArrayNode = jsonBody as ArrayNode
                 val memberList = mutableListOf<Member>()
@@ -140,10 +140,10 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
             }
     }
 
-    override fun requestedGuild(guildId: Long): GetterRestAction<Guild> {
+    override fun requestedGuild(guildId: Long): CompletableDeferred<Guild> {
         return this.yde.restApiManager
             .get(EndPoint.GuildEndpoint.GET_GUILD, guildId.toString())
-            .executeGetterRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")
@@ -153,13 +153,11 @@ class GuildRestAPIMethodsImpl(val yde: YDE) : GuildRestAPIMethods {
             }
     }
 
-    override fun requestedGuilds(): GetterRestAction<List<Guild>> {
-        return this.yde.restApiManager
-            .get(EndPoint.GuildEndpoint.GET_GUILDS)
-            .executeGetterRestAction() { it ->
-                val jsonBody = it.jsonBody
-                jsonBody?.map { GuildImpl(yde, it, it["id"].asLong()) }
-                    ?: throw IllegalStateException("json body is null")
-            }
+    override fun requestedGuilds(): CompletableDeferred<List<Guild>> {
+        return this.yde.restApiManager.get(EndPoint.GuildEndpoint.GET_GUILDS).execute() { it ->
+            val jsonBody = it.jsonBody
+            jsonBody?.map { GuildImpl(yde, it, it["id"].asLong()) }
+                ?: throw IllegalStateException("json body is null")
+        }
     }
 }

@@ -98,4 +98,7 @@ fun generateRestAPIMethodGetters() {
     }
 }
 
-task("generateKotlinCode") { generateRestAPIMethodGetters() }
+task("generateKotlinCode") {
+    group = "generate"
+    generateRestAPIMethodGetters()
+}

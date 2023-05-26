@@ -22,25 +22,22 @@ import io.github.ydwk.yde.YDE
 import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.impl.entities.VoiceStateImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.GetterRestAction
 import io.github.ydwk.yde.rest.methods.VoiceRestAPIMethods
+import kotlinx.coroutines.CompletableDeferred
 
 class VoiceRestAPIMethodsImpl(val yde: YDE) : VoiceRestAPIMethods {
-    override fun requestVoiceRegions(): GetterRestAction<List<VoiceState.VoiceRegion>> {
-        return yde.restApiManager
-            .get(EndPoint.VoiceEndpoint.GET_VOICE_REGIONS)
-            .executeGetterRestAction {
-                val voiceRegions: MutableList<VoiceState.VoiceRegion> = mutableListOf()
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    jsonBody.forEach { json ->
-                        voiceRegions.add(
-                            VoiceStateImpl.VoiceRegionImpl(yde, json, json["id"].asLong()))
-                    }
+    override fun requestVoiceRegions(): CompletableDeferred<List<VoiceState.VoiceRegion>> {
+        return yde.restApiManager.get(EndPoint.VoiceEndpoint.GET_VOICE_REGIONS).execute {
+            val voiceRegions: MutableList<VoiceState.VoiceRegion> = mutableListOf()
+            val jsonBody = it.jsonBody
+            if (jsonBody == null) {
+                throw IllegalStateException("json body is null")
+            } else {
+                jsonBody.forEach { json ->
+                    voiceRegions.add(VoiceStateImpl.VoiceRegionImpl(yde, json, json["id"].asLong()))
                 }
-                voiceRegions
             }
+            voiceRegions
+        }
     }
 }

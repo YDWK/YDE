@@ -19,7 +19,7 @@
 package io.github.ydwk.yde.rest.methods
 
 import io.github.ydwk.yde.entities.VoiceState
-import io.github.ydwk.yde.rest.action.GetterRestAction
+import kotlinx.coroutines.CompletableDeferred
 
 interface VoiceRestAPIMethods {
     /**
@@ -27,5 +27,5 @@ interface VoiceRestAPIMethods {
      *
      * @return A future containing the voice region list.
      */
-    fun requestVoiceRegions(): GetterRestAction<List<VoiceState.VoiceRegion>>
+    fun requestVoiceRegions(): CompletableDeferred<List<VoiceState.VoiceRegion>>
 }

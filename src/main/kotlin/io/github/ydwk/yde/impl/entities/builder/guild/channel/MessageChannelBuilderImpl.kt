@@ -26,7 +26,7 @@ import io.github.ydwk.yde.entities.channel.guild.message.GuildMessageChannel
 import io.github.ydwk.yde.entities.channel.guild.message.text.PermissionOverwrite
 import io.github.ydwk.yde.impl.entities.channel.guild.GuildMessageChannelImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MessageChannelBuilderImpl(val yde: YDE, val guildId: String?, val name: String) :
@@ -95,14 +95,14 @@ class MessageChannelBuilderImpl(val yde: YDE, val guildId: String?, val name: St
             return json
         }
 
-    override fun create(): RestExecutableRestAction<GuildMessageChannel> {
+    override fun create(): CompletableDeferred<GuildMessageChannel> {
         if (guildId == null) {
             throw IllegalStateException("Guild id is not set")
         }
 
         return yde.restApiManager
             .post(json.toString().toRequestBody(), EndPoint.GuildEndpoint.CREATE_CHANNEL, guildId)
-            .executeExecutableRestAction() {
+            .execute {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")

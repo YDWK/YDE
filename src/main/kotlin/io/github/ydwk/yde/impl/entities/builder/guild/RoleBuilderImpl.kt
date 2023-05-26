@@ -25,10 +25,10 @@ import io.github.ydwk.yde.entities.guild.Role
 import io.github.ydwk.yde.entities.guild.enums.GuildPermission
 import io.github.ydwk.yde.impl.entities.guild.RoleImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.Checks
 import java.awt.Color
 import java.util.*
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class RoleBuilderImpl(val yde: YDE, val guildId: String?, val name: String) : RoleBuilder {
@@ -104,14 +104,14 @@ class RoleBuilderImpl(val yde: YDE, val guildId: String?, val name: String) : Ro
             return json
         }
 
-    override fun create(): RestExecutableRestAction<Role> {
+    override fun create(): CompletableDeferred<Role> {
         if (guildId == null) {
             throw IllegalStateException("Guild id is not set")
         }
 
         return yde.restApiManager
             .post(json.toString().toRequestBody(), EndPoint.GuildEndpoint.CREATE_ROLE, guildId)
-            .executeExecutableRestAction() {
+            .execute {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")

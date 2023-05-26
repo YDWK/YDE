@@ -23,10 +23,10 @@ import io.github.ydwk.yde.entities.Guild
 import io.github.ydwk.yde.entities.audit.AuditLogType
 import io.github.ydwk.yde.entities.guild.Ban
 import io.github.ydwk.yde.entities.guild.Member
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
+import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.GetterSnowFlake
 import kotlin.time.Duration
+import kotlinx.coroutines.CompletableDeferred
 
 interface GuildRestAPIMethods {
 
@@ -38,14 +38,14 @@ interface GuildRestAPIMethods {
      * @param userId The id of the user.
      * @param deleteMessageDuration The duration of the messages to delete.
      * @param reason The reason for the ban.
-     * @return A [NoResultExecutableRestAction] that will ban the user.
+     * @return A [CompletableDeferred<NoResult>] that will ban the user.
      */
     fun banUser(
         guildId: Long,
         userId: Long,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): NoResultExecutableRestAction
+    ): CompletableDeferred<NoResult>
 
     /**
      * Unbans a user from the guild.
@@ -53,13 +53,13 @@ interface GuildRestAPIMethods {
      * @param guildId The id of the guild.
      * @param userId The id of the user.
      * @param reason The reason for the unban.
-     * @return A [NoResultExecutableRestAction] that will unban the user.
+     * @return A [CompletableDeferred<NoResult>] that will unban the user.
      */
     fun unbanUser(
         guildId: Long,
         userId: Long,
         reason: String? = null,
-    ): NoResultExecutableRestAction
+    ): CompletableDeferred<NoResult>
 
     /**
      * Kicks a member from the guild.
@@ -67,21 +67,21 @@ interface GuildRestAPIMethods {
      * @param guildId The id of the guild.
      * @param userId The id of the user.
      * @param reason The reason for the kick.
-     * @return A [NoResultExecutableRestAction] that will kick the user.
+     * @return A [CompletableDeferred<NoResult>] that will kick the user.
      */
     fun kickMember(
         guildId: Long,
         userId: Long,
         reason: String? = null
-    ): NoResultExecutableRestAction
+    ): CompletableDeferred<NoResult>
 
     /**
      * Requests the ban list for the guild.
      *
      * @param guildId The id of the guild.
-     * @return A [GetterRestAction] that will request the ban list.
+     * @return A [CompletableDeferred] that will request the ban list.
      */
-    fun requestedBanList(guildId: Long): GetterRestAction<List<Ban>>
+    fun requestedBanList(guildId: Long): CompletableDeferred<List<Ban>>
 
     //////////////// Guild Request Methods ///////////////////////
 
@@ -92,7 +92,7 @@ interface GuildRestAPIMethods {
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @param before Entries that preceded a specific audit log entry ID.
      * @param actionType The type of action to filter by.
-     * @return A [GetterRestAction] that will request the audit log.
+     * @return A [CompletableDeferred] that will request the audit log.
      */
     fun requestedAuditLog(
         guildId: Long,
@@ -100,36 +100,36 @@ interface GuildRestAPIMethods {
         limit: Int = 50,
         before: GetterSnowFlake? = null,
         actionType: AuditLogType? = null,
-    ): GetterRestAction<AuditLog>
+    ): CompletableDeferred<AuditLog>
 
     /**
      * Request to get all the members within the guild.
      *
-     * @return A [GetterRestAction] that will request the members.
+     * @return A [CompletableDeferred] that will request the members.
      */
-    fun requestedMembers(guild: Guild): GetterRestAction<List<Member>> =
+    fun requestedMembers(guild: Guild): CompletableDeferred<List<Member>> =
         requestedMembers(guild, null)
 
     /**
      * Request to get the amount of members specified by the limit.
      *
      * @param limit The amount of members to retrieve.
-     * @return A [GetterRestAction] that will request the members.
+     * @return A [CompletableDeferred] that will request the members.
      */
-    fun requestedMembers(guild: Guild, limit: Int?): GetterRestAction<List<Member>>
+    fun requestedMembers(guild: Guild, limit: Int?): CompletableDeferred<List<Member>>
 
     /**
      * Request to get a guild by its id.
      *
      * @param guildId The id of the guild.
-     * @return A [GetterRestAction] that will request the guild.
+     * @return A [CompletableDeferred] that will request the guild.
      */
-    fun requestedGuild(guildId: Long): GetterRestAction<Guild>
+    fun requestedGuild(guildId: Long): CompletableDeferred<Guild>
 
     /**
      * Request to get all the guilds the bot is in.
      *
-     * @return A [GetterRestAction] that will request the guilds.
+     * @return A [CompletableDeferred] that will request the guilds.
      */
-    fun requestedGuilds(): GetterRestAction<List<Guild>>
+    fun requestedGuilds(): CompletableDeferred<List<Guild>>
 }

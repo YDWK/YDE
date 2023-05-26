@@ -25,11 +25,11 @@ import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
+import kotlinx.coroutines.CompletableDeferred
 
 /** This class is used to represent a discord guild member entity. */
 interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, PermissionEntity {
@@ -138,7 +138,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      *
      * @return A future that completes with the created channel.
      */
-    val createDmChannel: RestExecutableRestAction<DmChannel>
+    val createDmChannel: CompletableDeferred<DmChannel>
         get() = user.createDmChannel
 
     /**
@@ -154,7 +154,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param role The role to add.
      * @return A future that completes with an empty result.
      */
-    fun addRole(role: Role): NoResultExecutableRestAction =
+    fun addRole(role: Role): CompletableDeferred<NoResult> =
         yde.restAPIMethodGetters
             .getMemberRestAPIMethods()
             .removeRoleFromMember(guild.idAsLong, user.idAsLong, role.idAsLong)
@@ -165,7 +165,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to add.
      * @return A future that completes with an empty result.
      */
-    fun addRoles(roles: List<Role>): List<NoResultExecutableRestAction> =
+    fun addRoles(roles: List<Role>): List<CompletableDeferred<NoResult>> =
         yde.restAPIMethodGetters
             .getMemberRestAPIMethods()
             .addRolesToMember(guild.idAsLong, user.idAsLong, roles.map { it.idAsLong })
@@ -176,7 +176,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to add.
      * @return A future that completes with an empty result.
      */
-    fun addRoles(vararg roles: Role): List<NoResultExecutableRestAction> = addRoles(roles.toList())
+    fun addRoles(vararg roles: Role): List<CompletableDeferred<NoResult>> = addRoles(roles.toList())
 
     /**
      * Removes a role from this member.
@@ -184,7 +184,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param role The role to remove.
      * @return A future that completes with an empty result.
      */
-    fun removeRole(role: Role): NoResultExecutableRestAction =
+    fun removeRole(role: Role): CompletableDeferred<NoResult> =
         yde.restAPIMethodGetters
             .getMemberRestAPIMethods()
             .removeRoleFromMember(guild.idAsLong, user.idAsLong, role.idAsLong)
@@ -195,7 +195,7 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to remove.
      * @return A future that completes an empty result.
      */
-    fun removeRoles(roles: List<Role>): List<NoResultExecutableRestAction> =
+    fun removeRoles(roles: List<Role>): List<CompletableDeferred<NoResult>> =
         yde.restAPIMethodGetters
             .getMemberRestAPIMethods()
             .removeRolesFromMember(guild.idAsLong, user.idAsLong, roles.map { it.idAsLong })
@@ -206,6 +206,6 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
      * @param roles The roles to remove.
      * @return A future that completes with an empty result.
      */
-    fun removeRoles(vararg roles: Role): List<NoResultExecutableRestAction> =
+    fun removeRoles(vararg roles: Role): List<CompletableDeferred<NoResult>> =
         removeRoles(roles.toList())
 }

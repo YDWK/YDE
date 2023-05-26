@@ -24,15 +24,14 @@ import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.impl.entities.UserImpl
 import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.rest.methods.UserRestAPIMethods
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class UserRestAPIMethodsImpl(val yde: YDE) : UserRestAPIMethods {
     val restApiManager = yde.restApiManager
 
-    override fun createDm(id: Long): RestExecutableRestAction<DmChannel> {
+    override fun createDm(id: Long): CompletableDeferred<DmChannel> {
         return restApiManager
             .post(
                 yde.objectMapper
@@ -41,7 +40,7 @@ class UserRestAPIMethodsImpl(val yde: YDE) : UserRestAPIMethods {
                     .toString()
                     .toRequestBody(),
                 EndPoint.UserEndpoint.CREATE_DM)
-            .executeExecutableRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")
@@ -51,22 +50,19 @@ class UserRestAPIMethodsImpl(val yde: YDE) : UserRestAPIMethods {
             }
     }
 
-    override fun requestUser(id: Long): GetterRestAction<User> {
-        return this.restApiManager
-            .get(EndPoint.UserEndpoint.GET_USER, id.toString())
-            .executeGetterRestAction() {
-                val jsonBody = it.jsonBody
-                if (jsonBody == null) {
-                    throw IllegalStateException("json body is null")
-                } else {
-                    UserImpl(jsonBody, jsonBody["id"].asLong(), yde)
-                }
+    override fun requestUser(id: Long): CompletableDeferred<User> {
+        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USER, id.toString()).execute() {
+            val jsonBody = it.jsonBody
+            if (jsonBody == null) {
+                throw IllegalStateException("json body is null")
+            } else {
+                UserImpl(jsonBody, jsonBody["id"].asLong(), yde)
             }
+        }
     }
 
-    override fun requestUsers(): GetterRestAction<List<User>> {
-        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USERS).executeGetterRestAction { it
-            ->
+    override fun requestUsers(): CompletableDeferred<List<User>> {
+        return this.restApiManager.get(EndPoint.UserEndpoint.GET_USERS).execute { it ->
             val jsonBody = it.jsonBody
             jsonBody?.map { UserImpl(it, it["id"].asLong(), yde) }
                 ?: throw IllegalStateException("json body is null")

@@ -19,9 +19,6 @@
 package io.github.ydwk.yde.impl.rest.type
 
 import io.github.ydwk.yde.impl.YDEImpl
-import io.github.ydwk.yde.rest.action.ExtendableAction
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.cf.CompletableFutureManager
 import io.github.ydwk.yde.rest.error.HttpResponseCode
 import io.github.ydwk.yde.rest.error.JsonErrorCode
@@ -32,7 +29,6 @@ import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.function.Function
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.future.asCompletableFuture
 import okhttp3.*
 import org.slf4j.LoggerFactory
 
@@ -77,7 +73,7 @@ open class SimilarRestApiImpl(
             client.newCall(builder.build()).execute().use { response ->
                 if (!response.isSuccessful) {
                     val code = response.code
-                    error(response.body, code, null)
+                    error<Void>(response.body, code, null, null)
                 } else {
                     responseBody = response.body
                 }
@@ -91,8 +87,8 @@ open class SimilarRestApiImpl(
 
     override fun <T : Any> execute(
         function: Function<CompletableFutureManager, T>,
-    ): ExtendableAction<T> {
-        val queue = ExtendableAction<T>(CompletableDeferred())
+    ): CompletableDeferred<T> {
+        val queue = CompletableDeferred<T>()
 
         try {
             client
@@ -106,7 +102,7 @@ open class SimilarRestApiImpl(
                         override fun onResponse(call: Call, response: Response) {
                             if (!response.isSuccessful) {
                                 val code = response.code
-                                error(response.body, code, queue)
+                                error(response.body, code, function, null)
                             }
                             responseBody = response.body
                             val manager = CompletableFutureManager(response, yde)
@@ -122,8 +118,9 @@ open class SimilarRestApiImpl(
         return queue
     }
 
-    override fun executeWithNoResult(): NoResultExecutableRestAction {
-        val queue = NoResultExecutableRestAction()
+    override fun executeWithNoResult(): CompletableDeferred<NoResult> {
+        val queue = CompletableDeferred<NoResult>()
+
         try {
             client
                 .newCall(builder.build())
@@ -136,7 +133,8 @@ open class SimilarRestApiImpl(
                         override fun onResponse(call: Call, response: Response) {
                             if (!response.isSuccessful) {
                                 val code = response.code
-                                error(response.body, code, queue)
+                                error<NoResult>(
+                                    response.body, code, null, NoResult(Instant.now().toString()))
                             }
                             responseBody = response.body
                             queue.complete(NoResult(Instant.now().toString()))
@@ -150,66 +148,54 @@ open class SimilarRestApiImpl(
         return queue
     }
 
-    fun error(
+    fun <T : Any> error(
         body: ResponseBody,
         code: Int,
-        queue: ExtendableAction<*>?,
+        function: Function<CompletableFutureManager, T>?,
+        noResult: NoResult?
     ) {
         if (HttpResponseCode.fromInt(code) == HttpResponseCode.TOO_MANY_REQUESTS) {
-            handleRateLimit(body, queue)
+            handleRateLimit(body, function, noResult)
         } else if (HttpResponseCode.fromInt(code) != HttpResponseCode.UNKNOWN) {
             handleHttpResponse(body, code)
         } else if (JsonErrorCode.fromInt(code) != JsonErrorCode.UNKNOWN) {
             handleJsonError(body, code)
         } else {
-            logger.error("Unknown error occurred while executing request")
+            yde.logger.error("Unknown error occurred while executing request")
         }
     }
 
-    private fun handleRateLimit(
+    private fun <T : Any> handleRateLimit(
         body: ResponseBody,
-        queue: ExtendableAction<*>?,
+        function: Function<CompletableFutureManager, T>?,
+        noResult: NoResult?
     ) {
         val jsonNode = yde.objectMapper.readTree(body.string())
         val retryAfter = jsonNode.get("retry_after").asLong()
         val global = jsonNode.get("global").asBoolean()
+        val message = jsonNode.get("message").asText()
+        yde.logger.error("Error while executing request: $message")
         if (global) {
-            logger.debug("Global rate limit reached, retrying in $retryAfter ms")
-            try {
-                Thread.sleep(retryAfter)
-            } catch (e: InterruptedException) {
-                logger.error("Error while sleeping", e)
-            }
-            completeReTry(queue)
+            yde.logger.error("Global rate limit reached, retrying in $retryAfter ms")
+            Thread.sleep(retryAfter)
+            completeReTry(function, noResult)
         } else {
-            logger.debug("Rate limit reached, retrying in $retryAfter ms")
-            try {
-                Thread.sleep(retryAfter)
-            } catch (e: InterruptedException) {
-                logger.error("Error while sleeping", e)
-            }
-            completeReTry(queue)
+            yde.logger.error("Rate limit reached, retrying in $retryAfter ms")
+            Thread.sleep(retryAfter)
+            completeReTry(function, noResult)
         }
     }
 
-    private fun completeReTry(
-        queue: ExtendableAction<*>?,
+    private fun <T : Any> completeReTry(
+        function: Function<CompletableFutureManager, T>?,
+        noResult: NoResult?
     ) {
-        when (queue) {
-            is NoResultExecutableRestAction -> {
-                executeWithNoResult().asCompletableFuture().thenAccept {
-                    queue.executeCompletable()
-                }
-                logger.debug(HttpResponseCode.OK.getMessage())
-            }
-            is GetterRestAction<*> -> {
-                execute { queue.executeCompletable() }
-                logger.debug(HttpResponseCode.OK.getMessage())
-            }
-            else -> {
-                execute()
-                logger.debug(HttpResponseCode.OK.getMessage())
-            }
+        if (function != null) {
+            execute(function)
+        } else if (noResult != null) {
+            executeWithNoResult()
+        } else {
+            execute()
         }
     }
 

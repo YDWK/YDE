@@ -21,9 +21,9 @@ package io.github.ydwk.yde.entities
 import io.github.ydwk.yde.entities.channel.guild.vc.GuildVoiceChannel
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.rest.action.GetterRestAction
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
+import kotlinx.coroutines.CompletableDeferred
 
 interface VoiceState : GenericEntity {
 
@@ -116,7 +116,7 @@ interface VoiceState : GenericEntity {
      *
      * @return The voice region of this voice state.
      */
-    suspend fun requestVoiceRegion(): GetterRestAction<List<VoiceRegion>> {
+    suspend fun requestVoiceRegion(): CompletableDeferred<List<VoiceRegion>> {
         return yde.restAPIMethodGetters.getVoiceRestAPIMethods().requestVoiceRegions()
     }
 
