@@ -31,7 +31,6 @@ import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.impl.entities.MessageImpl
 import io.github.ydwk.yde.rest.EndPoint
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MessageBuilder {
@@ -190,9 +189,8 @@ class MessageBuilder {
      * @param user The user to send the message to.
      * @return The [Message] that was sent.
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun sendToUser(user: User): CompletableDeferred<Message> {
-        return user.createDmChannel.getCompleted().send()
+        return user.createDmChannel.await().send()
     }
 
     private fun sendMessageToChannelBody(
