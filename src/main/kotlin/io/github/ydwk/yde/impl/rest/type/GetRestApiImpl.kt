@@ -37,7 +37,7 @@ class GetRestApiImpl(
                 if (response.isSuccessful) {
                     yde.objectMapper.readTree(responseBody!!.string())
                 } else {
-                    error(response.body, response.code, null)
+                    error<Void>(response.body, response.code, null, null)
                     null!!
                 }
             } catch (e: Exception) {

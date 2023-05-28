@@ -22,6 +22,7 @@ import io.github.ydwk.yde.builders.user.UserCommandBuilder
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.rest.EndPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -178,24 +179,26 @@ class UserCommandSender(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGlobalUserCommandsNameAndIds(): Map<Long, String> {
         return withContext(Dispatchers.IO) {
             yde.restApiManager
                 .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
-                .executeGetterRestAction() { it ->
+                .execute { it ->
                     val jsonBody = it.jsonBody
                     if (jsonBody == null) {
-                        return@executeGetterRestAction emptyMap()
+                        return@execute emptyMap()
                     } else {
-                        return@executeGetterRestAction jsonBody.associate {
+                        return@execute jsonBody.associate {
                             it["id"].asLong() to it["name"].asText()
                         }
                     }
                 }
-                .get()
+                .getCompleted()
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGuildUserCommandsNameAndIds(): Map<String, Map<Long, String>> {
         return withContext(Dispatchers.IO) {
             guildIds.associateWith { guildId ->
@@ -204,17 +207,17 @@ class UserCommandSender(
                         EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS,
                         applicationId,
                         guildId)
-                    .executeGetterRestAction() { it ->
+                    .execute { it ->
                         val jsonBody = it.jsonBody
                         if (jsonBody == null) {
-                            return@executeGetterRestAction emptyMap()
+                            return@execute emptyMap()
                         } else {
-                            return@executeGetterRestAction jsonBody.associate {
+                            return@execute jsonBody.associate {
                                 it["id"].asLong() to it["name"].asText()
                             }
                         }
                     }
-                    .get()
+                    .getCompleted()
             }
         }
     }

@@ -177,24 +177,26 @@ class MessageCommandSender(
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGlobalMessageCommandsNameAndIds(): Map<Long, String> {
         return withContext(Dispatchers.IO) {
             yde.restApiManager
                 .get(EndPoint.ApplicationCommandsEndpoint.GET_GLOBAL_COMMANDS, applicationId)
-                .executeGetterRestAction { it ->
+                .execute { it ->
                     val jsonBody = it.jsonBody
                     if (jsonBody == null) {
-                        return@executeGetterRestAction emptyMap()
+                        return@execute emptyMap()
                     } else {
-                        return@executeGetterRestAction jsonBody.associate {
+                        return@execute jsonBody.associate {
                             it["id"].asLong() to it["name"].asText()
                         }
                     }
                 }
-                .get()
+                .getCompleted()
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGuildMessageCommandsNameAndIds(): Map<String, Map<Long, String>> {
         return withContext(Dispatchers.IO) {
             guildIds.associateWith { guildId ->
@@ -203,17 +205,17 @@ class MessageCommandSender(
                         EndPoint.ApplicationCommandsEndpoint.GET_GUILD_COMMANDS,
                         applicationId,
                         guildId)
-                    .executeGetterRestAction() { it ->
+                    .execute { it ->
                         val jsonBody = it.jsonBody
                         if (jsonBody == null) {
-                            return@executeGetterRestAction emptyMap()
+                            return@execute emptyMap()
                         } else {
-                            return@executeGetterRestAction jsonBody.associate {
+                            return@execute jsonBody.associate {
                                 it["id"].asLong() to it["name"].asText()
                             }
                         }
                     }
-                    .get()
+                    .getCompleted()
             }
         }
     }

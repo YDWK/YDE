@@ -22,10 +22,10 @@ import io.github.ydwk.yde.YDE
 import io.github.ydwk.yde.entities.guild.Invite
 import io.github.ydwk.yde.impl.entities.guild.InviteImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.Checks
 import io.github.ydwk.yde.util.GetterSnowFlake
 import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class InviteCreator(val yde: YDE, private val channelId: String) {
@@ -121,7 +121,7 @@ class InviteCreator(val yde: YDE, private val channelId: String) {
      *
      * @return The [CompletableFuture] of the [Invite].
      */
-    fun create(): RestExecutableRestAction<InviteImpl> {
+    fun create(): CompletableDeferred<InviteImpl> {
         val json = yde.objectMapper.createObjectNode()
 
         json.put("max_age", maxAge)
@@ -144,7 +144,7 @@ class InviteCreator(val yde: YDE, private val channelId: String) {
         return yde.restApiManager
             .post(
                 json.toString().toRequestBody(), EndPoint.ChannelEndpoint.CREATE_INVITE, channelId)
-            .executeExecutableRestAction {
+            .execute {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")

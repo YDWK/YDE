@@ -31,14 +31,12 @@ import io.github.ydwk.yde.entities.guild.Role
 import io.github.ydwk.yde.entities.guild.WelcomeScreen
 import io.github.ydwk.yde.entities.guild.enums.*
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
+import kotlinx.coroutines.CompletableDeferred
 
 /** This class is used to represent a discord guild object. */
 interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
@@ -307,7 +305,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @return a list of ban's for the guild.
      */
-    val requestBans: GetterRestAction<List<Ban>>
+    val requestBans: CompletableDeferred<List<Ban>>
         get() {
             return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedBanList(idAsLong)
         }
@@ -325,7 +323,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: Long): RestExecutableRestAction<DmChannel> {
+    fun createDmChannel(userId: Long): CompletableDeferred<DmChannel> {
         return yde.restAPIMethodGetters.getUserRestAPIMethods().createDm(userId)
     }
 
@@ -335,7 +333,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: String): RestExecutableRestAction<DmChannel> =
+    fun createDmChannel(userId: String): CompletableDeferred<DmChannel> =
         createDmChannel(userId.toLong())
 
     /**
@@ -344,7 +342,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param user The user who you want to create a dm channel with.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(user: User): RestExecutableRestAction<DmChannel> = createDmChannel(user.id)
+    fun createDmChannel(user: User): CompletableDeferred<DmChannel> = createDmChannel(user.id)
 
     /**
      * The bot as a member of the guild.
@@ -360,13 +358,13 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @param deleteMessageDuration The duration of the messages to delete.
      * @param reason The reason for the ban.
-     * @return A [CompletableFuture] that completes when the ban is created.
+     * @return A [CompletableDeferred] that completes when the ban is created.
      */
     fun banUser(
         userId: Long,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): NoResultExecutableRestAction {
+    ): CompletableDeferred<NoResult> {
         return yde.restAPIMethodGetters
             .getGuildRestAPIMethods()
             .banUser(idAsLong, userId, deleteMessageDuration, reason)
@@ -377,7 +375,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param reason The reason for the ban.
-     * @return A [CompletableFuture] that completes when the ban is created.
+     * @return A [CompletableDeferred] that completes when the ban is created.
      */
     fun banUser(userId: Long, reason: String? = null) = banUser(userId, Duration.ZERO, reason)
 
@@ -386,7 +384,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param reason The reason for the ban.
-     * @return A [CompletableFuture] that completes when the ban is created.
+     * @return A [CompletableDeferred] that completes when the ban is created.
      */
     fun banUser(userId: String, reason: String? = null) = banUser(userId, Duration.ZERO, reason)
 
@@ -396,13 +394,13 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @param deleteMessageDuration The duration of the messages to delete.
      * @param reason The reason for the ban.
-     * @return A [CompletableFuture] that completes when the ban is created.
+     * @return A [CompletableDeferred] that completes when the ban is created.
      */
     fun banUser(
         userId: String,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): NoResultExecutableRestAction = banUser(userId.toLong(), deleteMessageDuration, reason)
+    ): CompletableDeferred<NoResult> = banUser(userId.toLong(), deleteMessageDuration, reason)
 
     /**
      * Bans a user from the guild.
@@ -415,7 +413,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
         user: User,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): NoResultExecutableRestAction = banUser(user.id, deleteMessageDuration, reason)
+    ): CompletableDeferred<NoResult> = banUser(user.id, deleteMessageDuration, reason)
 
     /**
      * Bans a member from the guild.
@@ -423,22 +421,22 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param member The member to ban.
      * @param deleteMessageDuration The duration of the messages to delete.
      * @param reason The reason for the ban.
-     * @return A [CompletableFuture] that completes when the ban is created.
+     * @return A [CompletableDeferred] that completes when the ban is created.
      */
     fun banMember(
         member: Member,
         deleteMessageDuration: Duration = Duration.ZERO,
         reason: String? = null,
-    ): NoResultExecutableRestAction = banUser(member.user, deleteMessageDuration, reason)
+    ): CompletableDeferred<NoResult> = banUser(member.user, deleteMessageDuration, reason)
 
     /**
      * Unbans a user from the guild.
      *
      * @param userId The id of the user.
      * @param reason The reason for the unban.
-     * @return A [CompletableFuture] that completes when the unban is created.
+     * @return A [CompletableDeferred] that completes when the unban is created.
      */
-    fun unbanUser(userId: Long, reason: String? = null): NoResultExecutableRestAction {
+    fun unbanUser(userId: Long, reason: String? = null): CompletableDeferred<NoResult> {
         return yde.restAPIMethodGetters.getGuildRestAPIMethods().unbanUser(idAsLong, userId, reason)
     }
 
@@ -447,9 +445,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param reason The reason for the unban.
-     * @return A [CompletableFuture] that completes when the unban is created.
+     * @return A [CompletableDeferred] that completes when the unban is created.
      */
-    fun unbanUser(userId: String, reason: String? = null): NoResultExecutableRestAction =
+    fun unbanUser(userId: String, reason: String? = null): CompletableDeferred<NoResult> =
         unbanUser(userId.toLong(), reason)
 
     /**
@@ -457,9 +455,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param user The user to unban.
      * @param reason The reason for the unban.
-     * @return A [CompletableFuture] that completes when the unban is created.
+     * @return A [CompletableDeferred] that completes when the unban is created.
      */
-    fun unbanUser(user: User, reason: String? = null): NoResultExecutableRestAction =
+    fun unbanUser(user: User, reason: String? = null): CompletableDeferred<NoResult> =
         unbanUser(user.id, reason)
 
     /**
@@ -467,9 +465,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param reason The reason for the kick.
-     * @return A [CompletableFuture] that completes when the kick is created.
+     * @return A [CompletableDeferred] that completes when the kick is created.
      */
-    fun kickMember(userId: Long, reason: String? = null): NoResultExecutableRestAction {
+    fun kickMember(userId: Long, reason: String? = null): CompletableDeferred<NoResult> {
         return yde.restAPIMethodGetters
             .getGuildRestAPIMethods()
             .kickMember(idAsLong, userId, reason)
@@ -480,9 +478,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param reason The reason for the kick.
-     * @return A [CompletableFuture] that completes when the kick is created.
+     * @return A [CompletableDeferred] that completes when the kick is created.
      */
-    fun kickMember(userId: String, reason: String? = null): NoResultExecutableRestAction =
+    fun kickMember(userId: String, reason: String? = null): CompletableDeferred<NoResult> =
         kickMember(userId.toLong(), reason)
 
     /**
@@ -490,9 +488,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param member The member to kick.
      * @param reason The reason for the kick.
-     * @return A [CompletableFuture] that completes when the kick is created.
+     * @return A [CompletableDeferred] that completes when the kick is created.
      */
-    fun kickMember(member: Member, reason: String? = null): NoResultExecutableRestAction =
+    fun kickMember(member: Member, reason: String? = null): CompletableDeferred<NoResult> =
         kickMember(member.user.id, reason)
 
     /**
@@ -502,14 +500,14 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @param before Entries that preceded a specific audit log entry ID.
      * @param actionType The type of action to filter by.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
     fun requestedAuditLog(
         userId: GetterSnowFlake? = null,
         limit: Int = 50,
         before: GetterSnowFlake? = null,
         actionType: AuditLogType? = null,
-    ): GetterRestAction<AuditLog> {
+    ): CompletableDeferred<AuditLog> {
         return yde.restAPIMethodGetters
             .getGuildRestAPIMethods()
             .requestedAuditLog(idAsLong, userId, limit, before, actionType)
@@ -518,18 +516,18 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
     /**
      * Request the audit log for the guild.
      *
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(): GetterRestAction<AuditLog> =
+    fun requestedAuditLog(): CompletableDeferred<AuditLog> =
         requestedAuditLog(GetterSnowFlake.asNull, 50, null, null)
 
     /**
      * Request the audit log for the guild.
      *
      * @param userId The id of the user.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(userId: GetterSnowFlake): GetterRestAction<AuditLog> =
+    fun requestedAuditLog(userId: GetterSnowFlake): CompletableDeferred<AuditLog> =
         requestedAuditLog(userId, 50, null, null)
 
     /**
@@ -537,9 +535,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param userId The id of the user.
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(userId: GetterSnowFlake, limit: Int): GetterRestAction<AuditLog> =
+    fun requestedAuditLog(userId: GetterSnowFlake, limit: Int): CompletableDeferred<AuditLog> =
         requestedAuditLog(userId, limit, null, null)
 
     /**
@@ -548,13 +546,13 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param userId The id of the user.
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @param before Entries that preceded a specific audit log entry ID.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
     fun requestedAuditLog(
         userId: GetterSnowFlake,
         limit: Int,
         before: GetterSnowFlake,
-    ): GetterRestAction<AuditLog> = requestedAuditLog(userId, limit, before, null)
+    ): CompletableDeferred<AuditLog> = requestedAuditLog(userId, limit, before, null)
 
     /**
      * Request the audit log for the guild.
@@ -563,22 +561,22 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @param before Entries that preceded a specific audit log entry ID.
      * @param actionType The type of action to filter by.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
     fun requestedAuditLog(
         user: User? = null,
         limit: Int = 50,
         before: GetterSnowFlake? = null,
         actionType: AuditLogType? = null,
-    ): GetterRestAction<AuditLog> = requestedAuditLog(user, limit, before, actionType)
+    ): CompletableDeferred<AuditLog> = requestedAuditLog(user, limit, before, actionType)
 
     /**
      * Request the audit log for the guild.
      *
      * @param user The user to filter by.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(user: User): GetterRestAction<AuditLog> =
+    fun requestedAuditLog(user: User): CompletableDeferred<AuditLog> =
         requestedAuditLog(user, 50, null, null)
 
     /**
@@ -586,9 +584,9 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @param user The user to filter by.
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
-    fun requestedAuditLog(user: User, limit: Int): GetterRestAction<AuditLog> =
+    fun requestedAuditLog(user: User, limit: Int): CompletableDeferred<AuditLog> =
         requestedAuditLog(user, limit, null, null)
 
     /**
@@ -597,13 +595,13 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param user The user to filter by.
      * @param limit Maximum number of entries (between 1-100) to return, defaults to 50
      * @param before Entries that preceded a specific audit log entry ID.
-     * @return A [CompletableFuture] that completes when the audit log is retrieved.
+     * @return A [CompletableDeferred] that completes when the audit log is retrieved.
      */
     fun requestedAuditLog(
         user: User,
         limit: Int,
         before: GetterSnowFlake,
-    ): GetterRestAction<AuditLog> = requestedAuditLog(user, limit, before, null)
+    ): CompletableDeferred<AuditLog> = requestedAuditLog(user, limit, before, null)
 
     /**
      * Gets a role from the guild.
@@ -699,7 +697,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      *
      * @return The members.
      */
-    val retrieveMembers: GetterRestAction<List<Member>>
+    val retrieveMembers: CompletableDeferred<List<Member>>
         get() {
             return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedMembers(this)
         }
@@ -710,7 +708,7 @@ interface Guild : SnowFlake, NameAbleEntity, GenericEntity {
      * @param limit The limit of members to retrieve.
      * @return The members.
      */
-    fun retrieveMembers(limit: Int): GetterRestAction<List<Member>> {
+    fun retrieveMembers(limit: Int): CompletableDeferred<List<Member>> {
         return yde.restAPIMethodGetters.getGuildRestAPIMethods().requestedMembers(this, limit)
     }
 

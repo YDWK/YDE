@@ -18,7 +18,8 @@
  */ 
 package io.github.ydwk.yde.rest.methods
 
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
+import io.github.ydwk.yde.rest.result.NoResult
+import kotlinx.coroutines.CompletableDeferred
 
 interface MemberRestAPIMethods {
 
@@ -30,7 +31,7 @@ interface MemberRestAPIMethods {
      * @param roleId The role id.
      * @return A future that completes when the role is added.
      */
-    fun addRoleToMember(guildId: Long, userId: Long, roleId: Long): NoResultExecutableRestAction
+    fun addRoleToMember(guildId: Long, userId: Long, roleId: Long): CompletableDeferred<NoResult>
 
     /**
      * Adds a list of roles to a member.
@@ -44,7 +45,7 @@ interface MemberRestAPIMethods {
         guildId: Long,
         userId: Long,
         roleIds: List<Long>
-    ): List<NoResultExecutableRestAction>
+    ): List<CompletableDeferred<NoResult>>
 
     /**
      * Removes a role from a member.
@@ -58,7 +59,7 @@ interface MemberRestAPIMethods {
         guildId: Long,
         userId: Long,
         roleId: Long
-    ): NoResultExecutableRestAction
+    ): CompletableDeferred<NoResult>
 
     /**
      * Removes a list of roles from a member.
@@ -72,5 +73,5 @@ interface MemberRestAPIMethods {
         guildId: Long,
         userId: Long,
         roleIds: List<Long>
-    ): List<NoResultExecutableRestAction>
+    ): List<CompletableDeferred<NoResult>>
 }

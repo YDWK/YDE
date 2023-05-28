@@ -21,10 +21,10 @@ package io.github.ydwk.yde.entities
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.entities.util.GenericEntity
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
 import java.awt.Color
+import kotlinx.coroutines.CompletableDeferred
 
 interface User : SnowFlake, GenericEntity, NameAbleEntity, SendAble {
     /**
@@ -111,6 +111,6 @@ interface User : SnowFlake, GenericEntity, NameAbleEntity, SendAble {
      *
      * @return a dm channel with this user.
      */
-    val createDmChannel: RestExecutableRestAction<DmChannel>
+    val createDmChannel: CompletableDeferred<DmChannel>
         get() = yde.restAPIMethodGetters.getUserRestAPIMethods().createDm(idAsLong)
 }

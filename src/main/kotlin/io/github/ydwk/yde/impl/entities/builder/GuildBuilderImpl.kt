@@ -31,8 +31,8 @@ import io.github.ydwk.yde.entities.guild.enums.SystemChannelFlag
 import io.github.ydwk.yde.entities.guild.enums.VerificationLevel
 import io.github.ydwk.yde.impl.entities.GuildImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.util.Checks
+import kotlinx.coroutines.CompletableDeferred
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class GuildBuilderImpl(val yde: YDE, val name: String) : GuildBuilder {
@@ -172,10 +172,10 @@ class GuildBuilderImpl(val yde: YDE, val name: String) : GuildBuilder {
             return jsonBuilder
         }
 
-    override fun create(): RestExecutableRestAction<Guild> {
+    override fun create(): CompletableDeferred<Guild> {
         return yde.restApiManager
             .post(json.toString().toRequestBody(), EndPoint.GuildEndpoint.CREATE_GUILD)
-            .executeExecutableRestAction() {
+            .execute {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")

@@ -20,11 +20,12 @@ package io.github.ydwk.yde.impl.rest.methods
 
 import io.github.ydwk.yde.YDE
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.methods.MessageRestAPIMethods
+import io.github.ydwk.yde.rest.result.NoResult
+import kotlinx.coroutines.CompletableDeferred
 
 class MessageRestAPIMethodsImpl(val yde: YDE) : MessageRestAPIMethods {
-    override fun deleteMessage(messageId: Long, channelId: Long): NoResultExecutableRestAction {
+    override fun deleteMessage(messageId: Long, channelId: Long): CompletableDeferred<NoResult> {
         return yde.restApiManager
             .delete(
                 EndPoint.MessageEndpoint.DELETE_MESSAGE, channelId.toString(), messageId.toString())

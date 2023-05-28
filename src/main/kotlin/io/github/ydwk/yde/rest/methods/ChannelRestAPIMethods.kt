@@ -20,31 +20,31 @@ package io.github.ydwk.yde.rest.methods
 
 import io.github.ydwk.yde.entities.Channel
 import io.github.ydwk.yde.entities.channel.GuildChannel
-import io.github.ydwk.yde.rest.action.GetterRestAction
+import kotlinx.coroutines.CompletableDeferred
 
 interface ChannelRestAPIMethods {
     /**
      * Request to get a channel by its id.
      *
      * @param channelId the id of the channel
-     * @return a [GetterRestAction] of the channel
+     * @return a [CompletableDeferred] of the channel
      */
-    fun requestChannel(channelId: Long): GetterRestAction<Channel>
+    fun requestChannel(channelId: Long): CompletableDeferred<Channel>
 
     /**
      * Request to get a guild channel by its id.
      *
      * @param guildId the id of the guild
      * @param channelId the id of the channel
-     * @return a [GetterRestAction] of the channel
+     * @return a [CompletableDeferred] of the channel
      */
-    fun requestGuildChannel(guildId: Long, channelId: Long): GetterRestAction<GuildChannel>
+    fun requestGuildChannel(guildId: Long, channelId: Long): CompletableDeferred<GuildChannel>
 
     /**
      * Request to get a list of guild channels.
      *
      * @param guildId the id of the guild
-     * @return a [GetterRestAction] of the list of channels
+     * @return a [CompletableDeferred] of the list of channels
      */
-    fun requestGuildChannels(guildId: Long): GetterRestAction<List<GuildChannel>>
+    fun requestGuildChannels(guildId: Long): CompletableDeferred<List<GuildChannel>>
 }

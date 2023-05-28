@@ -37,6 +37,7 @@ import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -174,12 +175,13 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
             return voiceStates
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getBotAsMember(id: String, botId: String): Member =
         withContext(Dispatchers.IO) {
             yde.getMemberById(id, botId)
                 ?: yde.restApiManager
                     .get(EndPoint.GuildEndpoint.GET_MEMBER, id, botId)
-                    .executeGetterRestAction { it ->
+                    .execute { it ->
                         val jsonBody = it.jsonBody
                         jsonBody?.let {
                             val member = MemberImpl(yde as YDEImpl, it, this@GuildImpl)
@@ -188,7 +190,7 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
                         }
                             ?: throw IllegalStateException("Response body is null")
                     }
-                    .get()
+                    .getCompleted()
         }
 
     override val botAsMember: Member

@@ -25,14 +25,14 @@ import io.github.ydwk.yde.entities.channel.enums.ChannelType
 import io.github.ydwk.yde.impl.entities.channel.DmChannelImpl
 import io.github.ydwk.yde.impl.entities.channel.guild.GuildChannelImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.GetterRestAction
 import io.github.ydwk.yde.rest.methods.ChannelRestAPIMethods
+import kotlinx.coroutines.CompletableDeferred
 
 class ChannelRestAPIMethodsImpl(val yde: YDE) : ChannelRestAPIMethods {
-    override fun requestChannel(channelId: Long): GetterRestAction<Channel> {
+    override fun requestChannel(channelId: Long): CompletableDeferred<Channel> {
         return this.yde.restApiManager
             .get(EndPoint.ChannelEndpoint.GET_CHANNEL, channelId.toString())
-            .executeGetterRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")
@@ -50,11 +50,11 @@ class ChannelRestAPIMethodsImpl(val yde: YDE) : ChannelRestAPIMethods {
     override fun requestGuildChannel(
         guildId: Long,
         channelId: Long
-    ): GetterRestAction<GuildChannel> {
+    ): CompletableDeferred<GuildChannel> {
         // TODO : Have a look at this
         return this.yde.restApiManager
             .get(EndPoint.ChannelEndpoint.GET_CHANNEL, channelId.toString())
-            .executeGetterRestAction() {
+            .execute() {
                 val jsonBody = it.jsonBody
                 if (jsonBody == null) {
                     throw IllegalStateException("json body is null")
@@ -64,10 +64,10 @@ class ChannelRestAPIMethodsImpl(val yde: YDE) : ChannelRestAPIMethods {
             }
     }
 
-    override fun requestGuildChannels(guildId: Long): GetterRestAction<List<GuildChannel>> {
+    override fun requestGuildChannels(guildId: Long): CompletableDeferred<List<GuildChannel>> {
         return this.yde.restApiManager
             .get(EndPoint.GuildEndpoint.GET_GUILD_CHANNELS, guildId.toString())
-            .executeGetterRestAction() { it ->
+            .execute { it ->
                 val jsonBody = it.jsonBody
                 jsonBody?.map { GuildChannelImpl(yde, it, it["id"].asLong()) }
                     ?: throw IllegalStateException("json body is null")

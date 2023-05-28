@@ -35,13 +35,12 @@ import io.github.ydwk.yde.entities.channel.getter.guild.GuildChannelGetter
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.message.embed.builder.EmbedBuilder
 import io.github.ydwk.yde.rest.RestApiManager
-import io.github.ydwk.yde.rest.action.GetterRestAction
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
 import io.github.ydwk.yde.rest.methods.RestAPIMethodGetters
 import io.github.ydwk.yde.util.Incubating
 import io.github.ydwk.yde.util.ThreadFactory
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import kotlinx.coroutines.CompletableDeferred
 
 interface YDE {
 
@@ -86,7 +85,7 @@ interface YDE {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: Long): RestExecutableRestAction<DmChannel> =
+    fun createDmChannel(userId: Long): CompletableDeferred<DmChannel> =
         restAPIMethodGetters.getUserRestAPIMethods().createDm(userId)
 
     /**
@@ -95,7 +94,7 @@ interface YDE {
      * @param userId The id of the user.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(userId: String): RestExecutableRestAction<DmChannel> =
+    fun createDmChannel(userId: String): CompletableDeferred<DmChannel> =
         createDmChannel(userId.toLong())
 
     /**
@@ -104,7 +103,7 @@ interface YDE {
      * @param user The user who you want to create a dm channel with.
      * @return The [DmChannel] object.
      */
-    fun createDmChannel(user: User): RestExecutableRestAction<DmChannel> = createDmChannel(user.id)
+    fun createDmChannel(user: User): CompletableDeferred<DmChannel> = createDmChannel(user.id)
 
     /**
      * Gets a member by its id.
@@ -161,7 +160,7 @@ interface YDE {
      * @param id The id of the user.
      * @return The [CompletableFuture] object.
      */
-    fun requestUser(id: Long): GetterRestAction<User> =
+    fun requestUser(id: Long): CompletableDeferred<User> =
         restAPIMethodGetters.getUserRestAPIMethods().requestUser(id)
 
     /**
@@ -170,14 +169,14 @@ interface YDE {
      * @param id The id of the user.
      * @return The [CompletableFuture] object.
      */
-    fun requestUser(id: String): GetterRestAction<User> = requestUser(id.toLong())
+    fun requestUser(id: String): CompletableDeferred<User> = requestUser(id.toLong())
 
     /**
      * Requests all the users the bot can see.
      *
      * @return The [CompletableFuture] object.
      */
-    fun requestUsers(): GetterRestAction<List<User>> =
+    fun requestUsers(): CompletableDeferred<List<User>> =
         restAPIMethodGetters.getUserRestAPIMethods().requestUsers()
 
     /**
@@ -186,7 +185,7 @@ interface YDE {
      * @param id The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuild(guildId: Long): GetterRestAction<Guild> =
+    fun requestGuild(guildId: Long): CompletableDeferred<Guild> =
         restAPIMethodGetters.getGuildRestAPIMethods().requestedGuild(guildId)
 
     /**
@@ -195,14 +194,14 @@ interface YDE {
      * @param id The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuild(guildId: String): GetterRestAction<Guild> = requestGuild(guildId.toLong())
+    fun requestGuild(guildId: String): CompletableDeferred<Guild> = requestGuild(guildId.toLong())
 
     /**
      * Requests all the guilds the bot is in.
      *
      * @return The [CompletableFuture] object.
      */
-    fun requestGuilds(): GetterRestAction<List<Guild>> =
+    fun requestGuilds(): CompletableDeferred<List<Guild>> =
         restAPIMethodGetters.getGuildRestAPIMethods().requestedGuilds()
 
     /**
@@ -300,7 +299,7 @@ interface YDE {
      * @param id The id of the channel.
      * @return The [CompletableFuture] object.
      */
-    fun requestChannelById(id: Long): GetterRestAction<Channel> =
+    fun requestChannelById(id: Long): CompletableDeferred<Channel> =
         restAPIMethodGetters.getChannelRestAPIMethods().requestChannel(id)
 
     /**
@@ -309,7 +308,8 @@ interface YDE {
      * @param id The id of the channel.
      * @return The [CompletableFuture] object.
      */
-    fun requestChannelById(id: String): GetterRestAction<Channel> = requestChannelById(id.toLong())
+    fun requestChannelById(id: String): CompletableDeferred<Channel> =
+        requestChannelById(id.toLong())
 
     /**
      * Requests a guild channel using its id.
@@ -318,7 +318,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannelById(id: Long, guildId: Long): GetterRestAction<GuildChannel> =
+    fun requestGuildChannelById(id: Long, guildId: Long): CompletableDeferred<GuildChannel> =
         restAPIMethodGetters.getChannelRestAPIMethods().requestGuildChannel(id, guildId)
 
     /**
@@ -328,7 +328,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannelById(id: String, guildId: String): GetterRestAction<GuildChannel> =
+    fun requestGuildChannelById(id: String, guildId: String): CompletableDeferred<GuildChannel> =
         requestGuildChannelById(id.toLong(), guildId.toLong())
 
     /**
@@ -337,7 +337,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannels(guildId: Long): GetterRestAction<List<GuildChannel>> =
+    fun requestGuildChannels(guildId: Long): CompletableDeferred<List<GuildChannel>> =
         restAPIMethodGetters.getChannelRestAPIMethods().requestGuildChannels(guildId)
 
     /**
@@ -346,7 +346,7 @@ interface YDE {
      * @param guildId The id of the guild.
      * @return The [CompletableFuture] object.
      */
-    fun requestGuildChannels(guildId: String): GetterRestAction<List<GuildChannel>> =
+    fun requestGuildChannels(guildId: String): CompletableDeferred<List<GuildChannel>> =
         requestGuildChannels(guildId.toLong())
 
     /** Sets the guild ids for guild commands */

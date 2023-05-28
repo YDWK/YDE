@@ -30,7 +30,8 @@ import io.github.ydwk.yde.entities.message.MessageFlag
 import io.github.ydwk.yde.entities.message.SendAble
 import io.github.ydwk.yde.impl.entities.MessageImpl
 import io.github.ydwk.yde.rest.EndPoint
-import io.github.ydwk.yde.rest.action.RestExecutableRestAction
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class MessageBuilder {
@@ -133,7 +134,7 @@ class MessageBuilder {
      * @param channel The channel to send the message to.
      * @return The [Message] that was sent.
      */
-    suspend fun send(sendeadble: SendAble): RestExecutableRestAction<Message> {
+    suspend fun send(sendeadble: SendAble): CompletableDeferred<Message> {
         return when (sendeadble) {
             is TextChannel -> {
                 sendToTextChannel(sendeadble)
@@ -156,14 +157,14 @@ class MessageBuilder {
      * @param channel The channel to send the message to.
      * @return The [Message] that was sent.
      */
-    private fun sendToTextChannel(channel: TextChannel): RestExecutableRestAction<Message> {
+    private fun sendToTextChannel(channel: TextChannel): CompletableDeferred<Message> {
         val body = sendMessageToChannelBody(channel.yde, content, tts, embeds, flags)
         return channel.yde.restApiManager
             .post(
                 body.toString().toRequestBody(),
                 EndPoint.ChannelEndpoint.CREATE_MESSAGE,
                 channel.id)
-            .executeExecutableRestAction { response ->
+            .execute { response ->
                 val json = response.jsonBody
                 if (json == null) {
                     throw IllegalStateException("Response body is null")
@@ -179,7 +180,7 @@ class MessageBuilder {
      * @param member The member to send the message to.
      * @return The [Message] that was sent.
      */
-    private suspend fun sendToMember(member: Member): RestExecutableRestAction<Message> {
+    private suspend fun sendToMember(member: Member): CompletableDeferred<Message> {
         return send(member.user as SendAble)
     }
 
@@ -189,8 +190,9 @@ class MessageBuilder {
      * @param user The user to send the message to.
      * @return The [Message] that was sent.
      */
-    private suspend fun sendToUser(user: User): RestExecutableRestAction<Message> {
-        return user.createDmChannel.execute().send()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private suspend fun sendToUser(user: User): CompletableDeferred<Message> {
+        return user.createDmChannel.getCompleted().send()
     }
 
     private fun sendMessageToChannelBody(

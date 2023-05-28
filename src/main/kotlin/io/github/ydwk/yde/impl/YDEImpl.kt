@@ -153,12 +153,12 @@ open class YDEImpl(
         guildIds.forEach { this.guildIdList.add(it) }
     }
 
-    override fun setAllowedCache(vararg cacheTypes: CacheIds) {
-        allowedCache.addAll(cacheTypes.toSet())
+    override fun setAllowedCache(vararg cacheIds: CacheIds) {
+        allowedCache.addAll(cacheIds.toSet())
     }
 
-    override fun setDisallowedCache(vararg cacheTypes: CacheIds) {
-        allowedCache.removeAll(cacheTypes.toSet())
+    override fun setDisallowedCache(vararg cacheIds: CacheIds) {
+        allowedCache.removeAll(cacheIds.toSet())
     }
 
     override val bot: Bot? = null

@@ -21,8 +21,9 @@ package io.github.ydwk.yde.interaction.application.sub
 import io.github.ydwk.yde.entities.message.MessageFlag
 import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.message.ActionRow
-import io.github.ydwk.yde.rest.action.NoResultExecutableRestAction
 import io.github.ydwk.yde.rest.result.NoResult
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /** Represents an object that can be used to reply to an interaction. */
 interface Reply {
@@ -72,15 +73,16 @@ interface Reply {
      *
      * @return The [NoResult] instance.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun trigger(): NoResult {
-        return triggerWithFuture().execute()
+        return triggerWithFuture().getCompleted()
     }
 
     /**
-     * Replies and return a [NoResultExecutableRestAction] that will be completed when the reply is
+     * Replies and return a [CompletableDeferred<NoResult>] that will be completed when the reply is
      * sent.
      *
-     * @return The [NoResultExecutableRestAction] instance.
+     * @return The [CompletableDeferred<NoResult>] instance.
      */
-    fun triggerWithFuture(): NoResultExecutableRestAction
+    fun triggerWithFuture(): CompletableDeferred<NoResult>
 }

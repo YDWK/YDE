@@ -29,6 +29,7 @@ import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.formatZonedDateTime
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 
 class VoiceStateImpl(
@@ -43,10 +44,11 @@ class VoiceStateImpl(
                 yde.getGuildById(json["guild_id"].asLong())
             else backupGuild
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override val channel: GuildVoiceChannel?
         get() = runBlocking {
             yde.requestChannelById(json["channel_id"].asLong())
-                .get()
+                .getCompleted()
                 .channelGetter
                 .asGuildChannel()
                 ?.guildChannelGetter
