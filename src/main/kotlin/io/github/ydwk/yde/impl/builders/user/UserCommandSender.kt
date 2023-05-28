@@ -22,7 +22,6 @@ import io.github.ydwk.yde.builders.user.UserCommandBuilder
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.rest.EndPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -179,7 +178,6 @@ class UserCommandSender(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGlobalUserCommandsNameAndIds(): Map<Long, String> {
         return withContext(Dispatchers.IO) {
             yde.restApiManager
@@ -194,11 +192,10 @@ class UserCommandSender(
                         }
                     }
                 }
-                .getCompleted()
+                .await()
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGuildUserCommandsNameAndIds(): Map<String, Map<Long, String>> {
         return withContext(Dispatchers.IO) {
             guildIds.associateWith { guildId ->
@@ -217,7 +214,7 @@ class UserCommandSender(
                             }
                         }
                     }
-                    .getCompleted()
+                    .await()
             }
         }
     }

@@ -177,7 +177,6 @@ class MessageCommandSender(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGlobalMessageCommandsNameAndIds(): Map<Long, String> {
         return withContext(Dispatchers.IO) {
             yde.restApiManager
@@ -192,11 +191,10 @@ class MessageCommandSender(
                         }
                     }
                 }
-                .getCompleted()
+                .await()
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGuildMessageCommandsNameAndIds(): Map<String, Map<Long, String>> {
         return withContext(Dispatchers.IO) {
             guildIds.associateWith { guildId ->
@@ -215,7 +213,7 @@ class MessageCommandSender(
                             }
                         }
                     }
-                    .getCompleted()
+                    .await()
             }
         }
     }

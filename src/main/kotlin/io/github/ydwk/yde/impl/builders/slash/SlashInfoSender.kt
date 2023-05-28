@@ -22,7 +22,6 @@ import io.github.ydwk.yde.builders.slash.SlashCommandBuilder
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.rest.EndPoint
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -179,7 +178,6 @@ class SlashInfoSender(
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGlobalSlashCommandsNameAndIds(): Map<Long, String> {
         return withContext(Dispatchers.IO) {
             yde.restApiManager
@@ -195,11 +193,10 @@ class SlashInfoSender(
                         }
                     }
                 }
-                .getCompleted()
+                .await()
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getCurrentGuildSlashCommandsNameAndIds(): Map<String, Map<Long, String>> {
         return withContext(Dispatchers.IO) {
             guildIds.associateWith { guildId ->
@@ -218,7 +215,7 @@ class SlashInfoSender(
                             }
                         }
                     }
-                    .getCompleted()
+                    .await()
             }
         }
     }

@@ -23,7 +23,6 @@ import io.github.ydwk.yde.impl.interaction.message.ComponentImpl
 import io.github.ydwk.yde.interaction.message.ActionRow
 import io.github.ydwk.yde.rest.result.NoResult
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 /** Represents an object that can be used to reply to an interaction. */
 interface Reply {
@@ -73,9 +72,8 @@ interface Reply {
      *
      * @return The [NoResult] instance.
      */
-    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun trigger(): NoResult {
-        return triggerWithFuture().getCompleted()
+        return triggerWithFuture().await()
     }
 
     /**

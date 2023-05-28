@@ -37,7 +37,6 @@ import io.github.ydwk.yde.rest.EndPoint
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
@@ -175,7 +174,6 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
             return voiceStates
         }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun getBotAsMember(id: String, botId: String): Member =
         withContext(Dispatchers.IO) {
             yde.getMemberById(id, botId)
@@ -190,7 +188,7 @@ class GuildImpl(override val yde: YDE, override val json: JsonNode, override val
                         }
                             ?: throw IllegalStateException("Response body is null")
                     }
-                    .getCompleted()
+                    .await()
         }
 
     override val botAsMember: Member
