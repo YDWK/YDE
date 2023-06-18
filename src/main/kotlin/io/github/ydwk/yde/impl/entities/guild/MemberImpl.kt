@@ -25,11 +25,15 @@ import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.guild.Member
 import io.github.ydwk.yde.entities.guild.Role
 import io.github.ydwk.yde.entities.guild.enums.GuildPermission
+import io.github.ydwk.yde.entities.user.Avatar
 import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.UserImpl
+import io.github.ydwk.yde.impl.entities.user.AvatarImpl
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.GetterSnowFlake
 import io.github.ydwk.yde.util.formatZonedDateTime
+import java.net.MalformedURLException
+import java.net.URL
 import java.util.*
 
 class MemberImpl(
@@ -45,7 +49,39 @@ class MemberImpl(
 
     override var nick: String? = if (json.has("nick")) json["nick"].asText() else null
 
-    override var avatar: String? = if (json.has("avatar")) json["avatar"].asText() else null
+    override var guildAvatarHash: String? =
+        if (json.has("avatar")) json["avatar"].asText() else null
+
+    override val guildAvatar: Avatar?
+        get() = getGuildAvatar(1024)
+
+    public fun getGuildAvatar(size: Int): Avatar? {
+        if (guildAvatarHash != null) {
+            val url = StringBuilder(("https://" + "cdn.discordapp.com") + "/")
+            url.append("guilds/")
+                .append(guild.id)
+                .append("/")
+                .append("users/")
+                .append(user.id)
+                .append("/")
+                .append("avatars/")
+                .append(guildAvatarHash)
+                .append(if (guildAvatarHash!!.startsWith("a_")) ".gif" else ".png")
+                .append("?size=")
+                .append(size)
+
+            try {
+                return AvatarImpl(yde, URL(url.toString()))
+            } catch (urlError: MalformedURLException) {
+                throw RuntimeException(
+                    "An issue occurred while creating the avatar URL, either update to the latest version of the library or report this issue to the developer.",
+                    urlError)
+            }
+        } else {
+            return null
+        }
+    }
+
     override val roleIds: List<GetterSnowFlake>
         get() = json["roles"].map { GetterSnowFlake.of(it.asLong()) }
 

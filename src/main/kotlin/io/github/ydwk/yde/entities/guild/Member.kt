@@ -24,6 +24,7 @@ import io.github.ydwk.yde.entities.User
 import io.github.ydwk.yde.entities.VoiceState
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
+import io.github.ydwk.yde.entities.user.Avatar
 import io.github.ydwk.yde.entities.util.GenericEntity
 import io.github.ydwk.yde.rest.result.NoResult
 import io.github.ydwk.yde.util.GetterSnowFlake
@@ -56,11 +57,18 @@ interface Member : NameAbleEntity, GenericEntity, SendAble, SnowFlake, Permissio
     var nick: String?
 
     /**
-     * The member's avatar hash.
+     * The member's guild avatar hash.
      *
-     * @return The member's avatar hash.
+     * @return The member's guild avatar hash.
      */
-    var avatar: String?
+    var guildAvatarHash: String?
+
+    /**
+     * The member's guild avatar.
+     *
+     * @return The member's guild avatar.
+     */
+    val guildAvatar: Avatar?
 
     /**
      * The ids of the roles this member is assigned.
