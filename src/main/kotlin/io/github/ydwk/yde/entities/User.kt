@@ -20,6 +20,7 @@ package io.github.ydwk.yde.entities
 
 import io.github.ydwk.yde.entities.channel.DmChannel
 import io.github.ydwk.yde.entities.message.SendAble
+import io.github.ydwk.yde.entities.user.Avatar
 import io.github.ydwk.yde.entities.util.GenericEntity
 import io.github.ydwk.yde.util.NameAbleEntity
 import io.github.ydwk.yde.util.SnowFlake
@@ -32,14 +33,52 @@ interface User : SnowFlake, GenericEntity, NameAbleEntity, SendAble {
      *
      * @return the user's 4-digit discord-tag.
      */
+    @Deprecated("Discord has removed discriminator in favour of the new @mention system.")
     var discriminator: String
+
+    /**
+     * The global name of the user.
+     *
+     * @return the global name of the user.
+     */
+    var globalName: String
 
     /**
      * The user's avatar hash.
      *
      * @return the user's avatar hash.
      */
-    var avatar: String
+    var avatarHash: String?
+
+    /**
+     * The user's guild specific avatar hash.
+     *
+     * @param guildId the guild id.
+     * @return the user's guild specific avatar hash.
+     */
+    fun guildAvatarHash(guildId: Long): String?
+
+    /**
+     * The user's avatar.
+     *
+     * @return the user's avatar.
+     */
+    val avatar: Avatar
+
+    /**
+     * The user's guild specific avatar.
+     *
+     * @param guildId the guild id.
+     * @return the user's guild specific avatar.
+     */
+    fun guildAvatar(guildId: Long): Avatar?
+
+    /**
+     * Whether the user has a default avatar.
+     *
+     * @return whether the user has a default avatar.
+     */
+    val hasDefaultAvatar: Boolean
 
     /**
      * Whether the user belongs to an OAuth2 application.
