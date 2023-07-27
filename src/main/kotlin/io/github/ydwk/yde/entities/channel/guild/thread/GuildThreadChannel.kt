@@ -18,8 +18,67 @@
  */ 
 package io.github.ydwk.yde.entities.channel.guild.thread
 
-import io.github.ydwk.yde.entities.channel.GuildChannel
+import io.github.ydwk.yde.entities.Guild
+import io.github.ydwk.yde.entities.channel.TextChannel
+import io.github.ydwk.yde.entities.channel.guild.message.text.GuildTextChannel
+import io.github.ydwk.yde.util.GetterSnowFlake
 
 // TODO : Add functionality to this class
 /** A thread channel in a guild. */
-interface GuildThreadChannel : GuildChannel
+interface GuildThreadChannel : TextChannel {
+
+    /**
+     * The guild of this channel.
+     *
+     * @return the guild of this channel.
+     */
+    val guild: Guild
+
+    /**
+     * The text channel parent of this thread.
+     *
+     * @return The text channel parent of this thread.
+     */
+    var textChannelParent: GuildTextChannel
+
+    /**
+     * The number of messages sent (stops counting at 50).
+     *
+     * @return the number of messages sent.
+     */
+    var messageCount: Int
+
+    /**
+     * The number of members partcipating in the thread (stops counting at 50).
+     *
+     * @return The number of members partcipating in the thread
+     */
+    var memberCount: Int
+
+    /**
+     * The id of the last message present in the thread channel.
+     *
+     * @return the last message id.
+     */
+    var lastMessageId: GetterSnowFlake
+
+    /**
+     * The total amount of messages sent.
+     *
+     * @return The total amount of messages sent.
+     */
+    var totalMessagesSent: Int
+
+    /**
+     * The rate limit per user.
+     *
+     * @return the rate limit per user.
+     */
+    var rateLimitPerUser : Int
+
+    /**
+     * Extra information involving this thread.
+     *
+     * @return the [ThreadMetadata] object containg extra infomation about the thread.
+     */
+}
