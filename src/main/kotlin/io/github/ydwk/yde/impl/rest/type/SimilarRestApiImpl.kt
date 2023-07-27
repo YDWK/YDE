@@ -28,6 +28,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 import java.util.function.Function
+import java.util.logging.Level
+import java.util.logging.Logger
 import kotlinx.coroutines.CompletableDeferred
 import okhttp3.*
 import org.slf4j.LoggerFactory
@@ -37,7 +39,12 @@ open class SimilarRestApiImpl(
     private val builder: Request.Builder,
     private val client: OkHttpClient,
 ) : SimilarRestApi {
-    private val logger = LoggerFactory.getLogger(SimilarRestApi::class.java)
+    private val httpLogger: Logger = Logger.getLogger(OkHttpClient::class.simpleName)
+    private val logger = LoggerFactory.getLogger(SimilarRestApiImpl::class.java)
+
+    init {
+        httpLogger.level = Level.ALL
+    }
 
     override fun header(name: String, value: String): SimilarRestApi {
         builder.header(name, value)
@@ -100,21 +107,26 @@ open class SimilarRestApiImpl(
                         }
 
                         override fun onResponse(call: Call, response: Response) {
-                            if (!response.isSuccessful) {
-                                val code = response.code
-                                error(response.body, code, function, null)
+                            try {
+                                if (!response.isSuccessful) {
+                                    val code = response.code
+                                    error(response.body, code, function, null)
+                                }
+                                responseBody = response.body
+                                val manager = CompletableFutureManager(response, yde)
+                                val result = function.apply(manager)
+                                queue.complete(result)
+                            } catch (e: Exception) {
+                                queue.completeExceptionally(e)
+                            } finally {
+                                responseBody?.close() // Close the response body after using it
                             }
-                            responseBody = response.body
-                            val manager = CompletableFutureManager(response, yde)
-                            val result = function.apply(manager)
-                            queue.complete(result)
                         }
                     })
         } catch (e: Exception) {
             throw RuntimeException("Error while executing request", e)
-        } finally {
-            responseBody?.close()
         }
+
         return queue
     }
 
@@ -131,20 +143,27 @@ open class SimilarRestApiImpl(
                         }
 
                         override fun onResponse(call: Call, response: Response) {
-                            if (!response.isSuccessful) {
-                                val code = response.code
-                                error<NoResult>(
-                                    response.body, code, null, NoResult(Instant.now().toString()))
+                            try {
+                                if (!response.isSuccessful) {
+                                    val code = response.code
+                                    error<NoResult>(
+                                        response.body,
+                                        code,
+                                        null,
+                                        NoResult(Instant.now().toString()))
+                                }
+                                queue.complete(NoResult(Instant.now().toString()))
+                            } catch (e: Exception) {
+                                queue.completeExceptionally(e)
+                            } finally {
+                                responseBody?.close() // Close the response body after using it
                             }
-                            responseBody = response.body
-                            queue.complete(NoResult(Instant.now().toString()))
                         }
                     })
         } catch (e: Exception) {
             throw RuntimeException("Error while executing request", e)
-        } finally {
-            responseBody?.close()
         }
+
         return queue
     }
 
@@ -161,7 +180,7 @@ open class SimilarRestApiImpl(
         } else if (JsonErrorCode.fromInt(code) != JsonErrorCode.UNKNOWN) {
             handleJsonError(body, code)
         } else {
-            yde.logger.error("Unknown error occurred while executing request")
+            logger.error("Unknown error occurred while executing request")
         }
     }
 
@@ -170,19 +189,25 @@ open class SimilarRestApiImpl(
         function: Function<CompletableFutureManager, T>?,
         noResult: NoResult?
     ) {
-        val jsonNode = yde.objectMapper.readTree(body.string())
-        val retryAfter = jsonNode.get("retry_after").asLong()
-        val global = jsonNode.get("global").asBoolean()
-        val message = jsonNode.get("message").asText()
-        yde.logger.error("Error while executing request: $message")
-        if (global) {
-            yde.logger.error("Global rate limit reached, retrying in $retryAfter ms")
-            Thread.sleep(retryAfter)
-            completeReTry(function, noResult)
-        } else {
-            yde.logger.error("Rate limit reached, retrying in $retryAfter ms")
-            Thread.sleep(retryAfter)
-            completeReTry(function, noResult)
+        try {
+            val jsonNode = yde.objectMapper.readTree(body.string())
+            val retryAfter = jsonNode.get("retry_after").asLong()
+            val global = jsonNode.get("global").asBoolean()
+            val message = jsonNode.get("message").asText()
+            logger.error("Error while executing request: $message")
+            if (global) {
+                logger.error("Global rate limit reached, retrying in $retryAfter ms")
+                Thread.sleep(retryAfter)
+                completeReTry(function, noResult)
+            } else {
+                logger.error("Rate limit reached, retrying in $retryAfter ms")
+                Thread.sleep(retryAfter)
+                completeReTry(function, noResult)
+            }
+        } catch (e: Exception) {
+            logger.error("Error while executing request: ${e.message}")
+        } finally {
+            responseBody?.close() // Close the response body after using it
         }
     }
 
@@ -207,7 +232,7 @@ open class SimilarRestApiImpl(
             reason +=
                 " This body contains more detail : " +
                     yde.objectMapper.readTree(body.string()).toPrettyString()
-        yde.logger.error("Error while executing request: $codeAndName $reason")
+        logger.error("Error while executing request: $codeAndName $reason")
     }
 
     private fun handleJsonError(body: ResponseBody, code: Int) {
@@ -218,7 +243,7 @@ open class SimilarRestApiImpl(
                 " This body contains more detail : " +
                     yde.objectMapper.readTree(body.string()).toPrettyString()
 
-        yde.logger.error("Error while executing request: $jsonCode $jsonMessage")
+        logger.error("Error while executing request: $jsonCode $jsonMessage")
     }
 
     var responseBody: ResponseBody? = null
