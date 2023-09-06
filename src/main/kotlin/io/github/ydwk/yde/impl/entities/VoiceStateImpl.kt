@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 YDWK inc.
+ * Copyright 2023 YDWK inc.
  *
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,6 @@ import io.github.ydwk.yde.impl.YDEImpl
 import io.github.ydwk.yde.impl.entities.guild.MemberImpl
 import io.github.ydwk.yde.util.EntityToStringBuilder
 import io.github.ydwk.yde.util.formatZonedDateTime
-import kotlinx.coroutines.runBlocking
 
 class VoiceStateImpl(
     override val yde: YDE,
@@ -44,30 +43,20 @@ class VoiceStateImpl(
             else backupGuild
 
     override val channel: GuildVoiceChannel?
-        get() = runBlocking {
-            yde.requestChannelById(json["channel_id"].asLong())
-                .await()
-                .channelGetter
-                .asGuildChannel()
-                ?.guildChannelGetter
-                ?.asGuildVoiceChannel()
-        }
+        get() =
+            if (yde.getGuildChannelGetterById(json["channel_id"].asText()) != null)
+                yde.getGuildChannelGetterById(json["channel_id"].asText())!!.asGuildVoiceChannel()
+            else null
 
     override val user: User
         get() =
             yde.getUserById(json["user_id"].asLong())
-                ?: throw IllegalStateException("User not found")
+                ?: throw NullPointerException("User not found")
 
     override val member: Member?
-        get() {
-            if (json.has("member") && guild != null) {
-                val member = MemberImpl(yde as YDEImpl, json["member"], guild!!)
-                val newMember = yde.memberCache.getOrPut(member)
-                yde.memberCache.updateVoiceState(newMember, this, true)
-                return newMember
-            } else (yde as YDEImpl).logger.debug("Member or guild is null")
-            return null
-        }
+        get() =
+            if (json.has("member")) MemberImpl(yde as YDEImpl, json["member"], guild!!, user)
+            else null
 
     override val sessionId: String
         get() = json["session_id"].asText()
@@ -91,7 +80,10 @@ class VoiceStateImpl(
         get() = json["suppress"].asBoolean()
 
     override val requestToSpeakTimestamp: String?
-        get() = formatZonedDateTime(json["request_to_speak_timestamp"].asText())
+        get() =
+            if (json.has("request_to_speak_timestamp"))
+                formatZonedDateTime(json["request_to_speak_timestamp"].asText())
+            else null
 
     override fun toString(): String {
         return EntityToStringBuilder(yde, this).add("sessionId", sessionId).toString()
