@@ -74,7 +74,7 @@ interface GuildThreadChannel : TextChannel {
      *
      * @return the rate limit per user.
      */
-    var rateLimitPerUser : Int
+    var rateLimitPerUser: Int
 
     /**
      * Extra information involving this thread.
