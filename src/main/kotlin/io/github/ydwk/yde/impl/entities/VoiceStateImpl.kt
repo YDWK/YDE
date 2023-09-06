@@ -44,9 +44,12 @@ class VoiceStateImpl(
 
     override val channel: GuildVoiceChannel?
         get() =
-            if (yde.getGuildChannelGetterById(json["channel_id"].asText()) != null)
-                yde.getGuildChannelGetterById(json["channel_id"].asText())!!.asGuildVoiceChannel()
-            else null
+            if (json.has("channel_id")) {
+                if (yde.getGuildChannelGetterById(json["channel_id"].asText()) != null)
+                    yde.getGuildChannelGetterById(json["channel_id"].asText())!!
+                        .asGuildVoiceChannel()
+                else null
+            } else null
 
     override val user: User
         get() =
