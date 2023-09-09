@@ -46,7 +46,7 @@ interface VoiceState : GenericEntity {
      *
      * @return The user this voice state is for.
      */
-    val user: User
+    val user: User?
 
     /**
      * The guild member this voice state is for.

@@ -44,17 +44,15 @@ class VoiceStateImpl(
 
     override val channel: GuildVoiceChannel?
         get() =
-            if (json.has("channel_id")) {
+            if (json.hasNonNull("channel_id") || json.get("channel_id").asText() != "null") {
                 if (yde.getGuildChannelGetterById(json["channel_id"].asText()) != null)
                     yde.getGuildChannelGetterById(json["channel_id"].asText())!!
                         .asGuildVoiceChannel()
                 else null
             } else null
 
-    override val user: User
-        get() =
-            yde.getUserById(json["user_id"].asLong())
-                ?: throw NullPointerException("User not found")
+    override val user: User?
+        get() = yde.getUserById(json["user_id"].asLong())
 
     override val member: Member?
         get() =
