@@ -10,7 +10,7 @@ buildscript {
     repositories { mavenCentral() }
 
     dependencies {
-        classpath("org.jetbrains.dokka:dokka-base:1.8.20")
+        classpath("org.jetbrains.dokka:dokka-base:1.9.10")
         classpath("io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.30.0")
     }
 }
